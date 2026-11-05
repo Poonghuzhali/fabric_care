@@ -41,6 +41,13 @@ python manage.py runserver
 
 5. After first deploy, open the site and sign in to **Staff portal** (`/portal/login/`) with the account created on migrate (`admin@serviceportal.com` — password set in `portal/accounts.py`; change for production).
 
+### Email testing without Render Shell (free plan)
+
+1. **Deploy** latest code, then open **Render → Logs** and search for `Email configuration (Render build)`.
+2. Sign in to **Staff portal → Settings** (`/portal/settings/`).
+3. Use **Send test email** (same Brevo path as booking confirmations).
+4. Check **Brevo → Transactional → Logs** if the inbox is empty.
+
 **Note:** User-uploaded media on Render’s free disk is ephemeral. For production, use S3 or similar for `MEDIA_ROOT`.
 
 ## Push to GitHub

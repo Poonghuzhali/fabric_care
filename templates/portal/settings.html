@@ -17,4 +17,30 @@
     </div>
   </form>
 </section>
+
+<section class="portal-panel portal-panel--narrow" style="margin-top:24px">
+  <h2 class="portal-panel__title">Booking confirmation email</h2>
+  <p class="portal-muted">Use this instead of Render Shell (not available on free plan).</p>
+  <dl class="portal-kv">
+    <div><dt>Ready to send</dt><dd>{% if email_status.delivery_enabled %}Yes{% else %}No — fix Render env vars{% endif %}</dd></div>
+    <div><dt>Method</dt><dd>{{ email_status.method }}</dd></div>
+    <div><dt>From address</dt><dd>{{ email_status.from_email }}</dd></div>
+    <div><dt>SMTP login</dt><dd>{{ email_status.smtp_user }}</dd></div>
+  </dl>
+  {% if not email_status.from_email_ok %}
+  <p class="portal-login-error" role="alert">Set <strong>DEFAULT_FROM_EMAIL</strong> on Render to a verified Brevo sender (not @smtp-brevo.com).</p>
+  {% endif %}
+  <form method="post" class="portal-form" style="margin-top:16px">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="test_email">
+    <div class="portal-field">
+      <label for="test-recipient">Send test email to</label>
+      <input id="test-recipient" class="portal-input" type="email" name="test_recipient" required placeholder="you@gmail.com" value="{{ request.user.email }}">
+    </div>
+    <div class="portal-form__actions">
+      <button type="submit" class="portal-btn portal-btn--line">Send test email</button>
+    </div>
+  </form>
+  <p class="portal-muted" style="margin-top:12px">After deploy, open <strong>Render → Logs</strong> and search for <code>Email configuration (Render build)</code>.</p>
+</section>
 {% endblock %}

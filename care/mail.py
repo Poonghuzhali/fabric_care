@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template.loader import render_to_string
 
 from care.brevo_mail import get_brevo_api_key, send_transactional_email
@@ -98,3 +98,31 @@ def send_booking_confirmation(booking, site=None):
     message.attach_alternative(html_body, "text/html")
     message.send(fail_silently=False)
     logger.info("Booking confirmation email sent to %s (booking #%s)", booking.email, booking.pk)
+
+
+def send_test_email_message(*, recipient, site=None):
+    """Send a plain test message using the same Brevo API / SMTP path as booking mail."""
+    if not email_delivery_enabled():
+        raise RuntimeError("Email is not configured on this server.")
+    from_email, _reply_to = _smtp_from_email(site)
+    brand = site.brand_name if site and site.brand_name else "Vastra Care"
+    subject = f"{brand} — test email"
+    text_body = "If you received this, booking confirmation emails are configured correctly."
+    if get_brevo_api_key():
+        send_transactional_email(
+            sender_email=from_email,
+            sender_name=brand,
+            to_email=recipient,
+            to_name=recipient,
+            subject=subject,
+            text_body=text_body,
+            html_body=f"<p>{text_body}</p>",
+        )
+        return
+    send_mail(
+        subject=subject,
+        message=text_body,
+        from_email=from_email,
+        recipient_list=[recipient],
+        fail_silently=False,
+    )

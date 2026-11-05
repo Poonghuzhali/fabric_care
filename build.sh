@@ -5,6 +5,7 @@ pip install -r requirements.txt
 
 python manage.py migrate --noinput
 python manage.py ensure_portal_admin --reset-password
+python manage.py report_email_config
 python manage.py seed
 python manage.py collectstatic --noinput
 

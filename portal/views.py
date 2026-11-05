@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
 
+from care.email_status import email_config_summary
+from care.mail import email_delivery_enabled, send_test_email_message
 from care.models import Booking, ContactMessage, Service, SiteSetting
 
 from .context import BUCKET_LABELS, booking_bucket, dashboard_stats, portal_context
@@ -326,10 +328,28 @@ def settings_view(request):
     if site is None:
         raise Http404("Site settings are not configured yet.")
     form = SiteSettingForm(request.POST or None, instance=site)
+    if request.method == "POST" and request.POST.get("action") == "test_email":
+        recipient = (request.POST.get("test_recipient") or request.user.email or "").strip()
+        if not recipient:
+            messages.error(request, "Enter an email address for the test.")
+        elif not email_delivery_enabled():
+            messages.error(
+                request,
+                "Email is not configured on the server. Set BREVO_API_KEY or Brevo SMTP vars in Render Environment.",
+            )
+        else:
+            try:
+                send_test_email_message(recipient=recipient, site=site)
+                messages.success(request, f"Test email sent to {recipient}. Check inbox and spam.")
+            except Exception as exc:
+                messages.error(request, f"Test email failed: {exc}")
+        return redirect("portal:settings")
     if request.method == "POST" and form.is_valid():
         form.save()
+        messages.success(request, "Site settings saved.")
         return redirect("portal:settings")
     ctx = portal_context(request, "Settings", "settings")
     ctx["form"] = form
     ctx["site"] = site
+    ctx["email_status"] = email_config_summary()
     return render(request, "portal/settings.html", ctx)

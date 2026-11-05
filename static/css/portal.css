@@ -751,3 +751,27 @@ a { color: inherit; text-decoration: none; }
   .portal-profile__meta { display: none; }
   .portal-grid-2 { grid-template-columns: 1fr; }
 }
+
+.portal-kv {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.portal-kv div {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.portal-kv dt {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.portal-kv dd {
+  margin: 0;
+  font-weight: 600;
+}

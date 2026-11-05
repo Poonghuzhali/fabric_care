@@ -1,6 +1,8 @@
 from django.conf import settings
-from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
+
+from care.mail import email_delivery_enabled, send_test_email_message
+from care.models import SiteSetting
 
 
 class Command(BaseCommand):
@@ -22,17 +24,11 @@ class Command(BaseCommand):
                 "python manage.py send_test_email you@example.com"
             )
             return
-        if not settings.EMAIL_HOST:
-            self.stderr.write("EMAIL_HOST is not configured. Check your .env file.")
+        if not email_delivery_enabled():
+            self.stderr.write("Email is not configured. Check BREVO_API_KEY or SMTP env vars.")
             return
         try:
-            send_mail(
-                subject="Vastra Care — SMTP test",
-                message="If you received this, booking confirmation email is configured correctly.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[recipient],
-                fail_silently=False,
-            )
+            send_test_email_message(recipient=recipient, site=SiteSetting.objects.first())
         except Exception as exc:
             self.stderr.write(self.style.ERROR(f"SMTP failed: {exc}"))
             self.stderr.write(
