@@ -174,7 +174,8 @@ if not EMAIL_HOST_PASSWORD:
     EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "").replace(" ", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() in ("1", "true", "yes")
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "false").lower() in ("1", "true", "yes")
-EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "30"))
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "12"))
+BREVO_API_TIMEOUT = int(os.environ.get("BREVO_API_TIMEOUT", "12"))
 
 # Gmail: port 587 + TLS, or port 465 + SSL — not both.
 if EMAIL_USE_SSL:

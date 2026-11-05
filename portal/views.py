@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 
 from django.contrib import messages
@@ -9,7 +10,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
 
 from care.email_status import email_config_summary
+from care.email_timeout import run_with_timeout
 from care.mail import email_delivery_enabled, send_test_email_message
+from care.brevo_mail import get_brevo_api_key
 from care.models import Booking, ContactMessage, Service, SiteSetting
 
 from .context import BUCKET_LABELS, booking_bucket, dashboard_stats, portal_context
@@ -17,6 +20,8 @@ from .customer_cleanup import delete_customer_by_email, purge_all_bookings, purg
 from .decorators import portal_login_required
 from .forms import BookingStatusForm, PortalLoginForm, ServiceForm, SiteSettingForm, StaffForm
 from .models import StaffMember
+
+logger = logging.getLogger(__name__)
 
 
 @ensure_csrf_cookie
@@ -337,11 +342,22 @@ def settings_view(request):
                 request,
                 "Email is not configured on the server. Set BREVO_API_KEY or Brevo SMTP vars in Render Environment.",
             )
+        elif not get_brevo_api_key():
+            messages.error(
+                request,
+                "On Render, set BREVO_API_KEY (xkeysib-…) in Environment. SMTP-only often times out and causes Bad Gateway.",
+            )
         else:
             try:
-                send_test_email_message(recipient=recipient, site=site)
+                run_with_timeout(
+                    12,
+                    send_test_email_message,
+                    recipient=recipient,
+                    site=site,
+                )
                 messages.success(request, f"Test email sent to {recipient}. Check inbox and spam.")
             except Exception as exc:
+                logger.exception("Portal test email failed")
                 messages.error(request, f"Test email failed: {exc}")
         return redirect("portal:settings")
     if request.method == "POST" and form.is_valid():

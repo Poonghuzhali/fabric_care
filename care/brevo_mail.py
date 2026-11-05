@@ -48,7 +48,8 @@ def send_transactional_email(*, sender_email, sender_name, to_email, to_name, su
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=getattr(settings, "EMAIL_TIMEOUT", 30)) as response:
+        timeout = getattr(settings, "BREVO_API_TIMEOUT", None) or getattr(settings, "EMAIL_TIMEOUT", 12)
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             if response.status not in (200, 201):
                 body = response.read().decode("utf-8", errors="replace")
                 raise RuntimeError(f"Brevo API returned {response.status}: {body[:500]}")
@@ -56,4 +57,7 @@ def send_transactional_email(*, sender_email, sender_name, to_email, to_name, su
         detail = exc.read().decode("utf-8", errors="replace")
         logger.exception("Brevo API HTTP error %s: %s", exc.code, detail[:500])
         raise RuntimeError(f"Brevo API error {exc.code}: {detail[:300]}") from exc
+    except urllib.error.URLError as exc:
+        logger.exception("Brevo API connection failed")
+        raise RuntimeError(f"Could not reach Brevo API: {exc.reason}") from exc
     logger.info("Brevo API email queued to %s", to_email)

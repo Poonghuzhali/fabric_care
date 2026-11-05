@@ -20,7 +20,7 @@
 
 <section class="portal-panel portal-panel--narrow" style="margin-top:24px">
   <h2 class="portal-panel__title">Booking confirmation email</h2>
-  <p class="portal-muted">Use this instead of Render Shell (not available on free plan).</p>
+  <p class="portal-muted">Use this instead of Render Shell (not available on free plan). Requires <strong>BREVO_API_KEY</strong> (xkeysib-…) on Render — SMTP-only may cause Bad Gateway.</p>
   <dl class="portal-kv">
     <div><dt>Ready to send</dt><dd>{% if email_status.delivery_enabled %}Yes{% else %}No — fix Render env vars{% endif %}</dd></div>
     <div><dt>Method</dt><dd>{{ email_status.method }}</dd></div>

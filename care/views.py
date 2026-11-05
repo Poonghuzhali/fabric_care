@@ -14,6 +14,7 @@ from django.views.decorators.http import require_POST, require_http_methods
 
 from .decorators import customer_login_required
 from .forms import BookingForm, ContactForm, CustomerLoginForm, CustomerRegistrationForm
+from .email_timeout import run_with_timeout
 from .mail import email_delivery_enabled, send_booking_confirmation
 from .payments import (
     create_service_order,
@@ -445,7 +446,7 @@ def book(request):
         success_message = f"Your order is placed. Order #{booking.id}."
         if email_delivery_enabled():
             try:
-                send_booking_confirmation(booking, site=site)
+                run_with_timeout(12, send_booking_confirmation, booking, site=site)
                 email_sent_to = booking.email
                 success_message = (
                     f"Your order is placed. A confirmation email was sent to {booking.email}."
