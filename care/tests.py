@@ -129,12 +129,17 @@ class LandingPageTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
+        payload = response.json()
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertEqual(message.to, ["mail@example.com"])
         self.assertIn(service.name, message.subject)
         self.assertIn(service.name, message.body)
-        self.assertIn("confirmation email was sent", response.json()["message"].lower())
+        self.assertIn("confirmation email was sent", payload["message"].lower())
+        booking = Booking.objects.get(email="mail@example.com")
+        self.assertEqual(payload["booking_id"], booking.id)
+        self.assertIn(f"/book/confirmation/{booking.id}/", payload["redirect"])
+        self.assertEqual(payload["email_sent_to"], "mail@example.com")
 
     @override_settings(
         PAYMENT_SKIP_VERIFY=True,

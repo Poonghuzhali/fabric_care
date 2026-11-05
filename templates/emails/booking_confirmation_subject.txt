@@ -1,1 +1,1 @@
-Your booking request — {{ booking.service_name }} · {{ brand }}
+Order confirmed — {{ booking.service_name }} · {{ brand }}

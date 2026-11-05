@@ -7,7 +7,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST, require_http_methods
 
 from .decorators import customer_login_required
@@ -164,6 +165,29 @@ def customer_account(request):
     )
 
 
+@customer_login_required
+def booking_confirmation(request, booking_id):
+    booking = get_object_or_404(
+        Booking.objects.select_related("service"),
+        pk=booking_id,
+        customer=request.user,
+    )
+    if booking.payment_status != "paid":
+        return redirect("account")
+    site = SiteSetting.objects.first()
+    email_sent_to = request.session.pop(f"booking_{booking.id}_email_sent", "")
+    return render(
+        request,
+        "account/booking_confirmation.html",
+        {
+            "site": site,
+            "booking": booking,
+            "email_sent_to": email_sent_to,
+            "amount_display": format_inr(booking.amount_paid),
+        },
+    )
+
+
 @require_POST
 def customer_logout(request):
     logout(request)
@@ -237,7 +261,7 @@ def home(request):
     return render(request, "index.html", context)
 
 
-def _form_response(request, form, success, saved_message):
+def _form_response(request, form, success, saved_message, *, booking=None, email_sent_to=""):
     if _wants_json(request):
         if form is None:
             return JsonResponse({"ok": False, "errors": {"form": "Could not read that request."}}, status=400)
@@ -246,11 +270,20 @@ def _form_response(request, form, success, saved_message):
             for key, value in form.errors.items():
                 errors[key if key != "__all__" else "form"] = value[0]
             return JsonResponse({"ok": False, "errors": errors}, status=400)
-        return JsonResponse({"ok": True, "message": saved_message})
+        payload = {"ok": True, "message": saved_message}
+        if booking is not None:
+            payload["booking_id"] = booking.id
+            payload["redirect"] = reverse("booking_confirmation", kwargs={"booking_id": booking.id})
+            payload["email_sent_to"] = email_sent_to or ""
+        return JsonResponse(payload)
     if form is not None and form.errors:
         messages.error(request, "Please check the form and try again.")
     elif form is not None:
         messages.success(request, saved_message)
+        if booking is not None:
+            if email_sent_to:
+                request.session[f"booking_{booking.id}_email_sent"] = email_sent_to
+            return redirect("booking_confirmation", booking_id=booking.id)
     return redirect("/")
 
 
@@ -377,12 +410,14 @@ def book(request):
             payment_status="paid",
         )
         site = SiteSetting.objects.first()
+        email_sent_to = ""
         success_message = (
             f"Payment received ({format_inr(service.price)}). Your booking is confirmed."
         )
         if email_delivery_enabled():
             try:
                 send_booking_confirmation(booking, site=site)
+                email_sent_to = booking.email
                 success_message = (
                     f"Payment received ({format_inr(service.price)}). Your booking is confirmed — "
                     f"a confirmation email was sent to {booking.email}."
@@ -402,7 +437,15 @@ def book(request):
                 f"Payment received ({format_inr(service.price)}). Your booking is confirmed. "
                 "(Confirmation email is not set up on the server yet — the studio will contact you.)"
             )
-        return _form_response(request, form, True, success_message)
+        request.session[f"booking_{booking.id}_email_sent"] = email_sent_to
+        return _form_response(
+            request,
+            form,
+            True,
+            success_message,
+            booking=booking,
+            email_sent_to=email_sent_to,
+        )
     return _form_response(request, form, False, "")
 
 

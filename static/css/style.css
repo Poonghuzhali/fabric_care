@@ -1464,6 +1464,114 @@ ul, ol { padding: 0; list-style: none; }
 
 .account-page { padding: 48px 0 72px; }
 
+.booking-confirmation__wrap { max-width: 640px; }
+
+.booking-confirmation__card {
+  background: #fff;
+  border-radius: 22px;
+  padding: 36px 28px 32px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(202, 165, 94, 0.22);
+  text-align: center;
+}
+
+.booking-confirmation__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(116, 31, 63, 0.12);
+  color: var(--maroon);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 56px;
+}
+
+.booking-confirmation__lead {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.booking-confirmation__email-notice {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(202, 165, 94, 0.18);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.booking-confirmation__email-notice--muted {
+  background: var(--cream);
+  color: var(--muted);
+}
+
+.booking-confirmation__summary {
+  margin: 28px 0 0;
+  text-align: left;
+  display: grid;
+  gap: 12px;
+}
+
+.booking-confirmation__summary div {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 8px 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(38, 34, 33, 0.06);
+}
+
+.booking-confirmation__summary dt {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.booking-confirmation__summary dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--maroon);
+  text-align: right;
+}
+
+.booking-confirmation__mono {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.booking-confirmation__notes {
+  margin: 20px 0 0;
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--cream);
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.booking-confirmation__maps {
+  margin: 16px 0 0;
+  text-align: left;
+}
+
+.booking-confirmation__maps a {
+  color: var(--maroon);
+  font-weight: 600;
+}
+
+.booking-confirmation__actions {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
 .account-head { margin-bottom: 28px; }
 
 .account-meta {

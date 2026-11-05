@@ -293,6 +293,10 @@
       }
       return;
     }
+    if (payload.redirect) {
+      window.location.assign(payload.redirect);
+      return;
+    }
     form.reset();
     updateBookPaySummary();
     form.hidden = true;

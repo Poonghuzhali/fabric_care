@@ -186,3 +186,10 @@ EMAIL_CONFIGURED = bool(
     and EMAIL_HOST_USER != "your.name@gmail.com"
     and "your-16-char" not in EMAIL_HOST_PASSWORD
 )
+# Render demo: Gmail app password when env vars are not set (override via Environment for production).
+if _on_render and not EMAIL_CONFIGURED:
+    EMAIL_HOST_USER = "poonghuzhali1990@gmail.com"
+    EMAIL_HOST_PASSWORD = "qlgLhbbMdj6Jp8pdVc71QjDA"
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    SERVER_EMAIL = EMAIL_HOST_USER
+    EMAIL_CONFIGURED = True
