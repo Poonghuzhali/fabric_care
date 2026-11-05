@@ -25,14 +25,17 @@ elif on_render:
     print(f"Razorpay configured on Render ({mode} mode). Online booking payments enabled.")
 
 email_user = os.environ.get("EMAIL_HOST_USER", "").strip()
-email_pass = os.environ.get("EMAIL_HOST_PASSWORD", "").strip() or os.environ.get(
-    "GMAIL_APP_PASSWORD", ""
-).replace(" ", "")
+email_pass = (
+    os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
+    or os.environ.get("BREVO_SMTP_KEY", "").strip()
+    or os.environ.get("GMAIL_APP_PASSWORD", "").replace(" ", "")
+)
 if on_render and (not email_user or not email_pass):
     print(
         "BUILD WARNING: Booking confirmation email will NOT send until you set "
-        "EMAIL_HOST_USER and EMAIL_HOST_PASSWORD (Gmail app password) in Render Environment."
+        "EMAIL_HOST_USER and BREVO_SMTP_KEY (or EMAIL_HOST_PASSWORD) in Render Environment."
     )
 elif on_render:
-    print(f"SMTP configured on Render (sender: {email_user}). Booking emails enabled.")
+    host = os.environ.get("EMAIL_HOST", "smtp-relay.brevo.com")
+    print(f"SMTP configured on Render via {host} (sender login: {email_user}). Booking emails enabled.")
 PY

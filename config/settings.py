@@ -167,6 +167,8 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "").strip()
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").replace(" ", "")
 if not EMAIL_HOST_PASSWORD:
+    EMAIL_HOST_PASSWORD = os.environ.get("BREVO_SMTP_KEY", "").strip()
+if not EMAIL_HOST_PASSWORD:
     EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "").replace(" ", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() in ("1", "true", "yes")
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "false").lower() in ("1", "true", "yes")
@@ -186,7 +188,7 @@ if EMAIL_HOST_USER and DEFAULT_FROM_EMAIL == "hello@vastracare.in":
 _on_render = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
 if _on_render:
     if not EMAIL_HOST:
-        EMAIL_HOST = "smtp.gmail.com"
+        EMAIL_HOST = "smtp-relay.brevo.com"
     if EMAIL_HOST and EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend":
         EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
@@ -196,11 +198,5 @@ EMAIL_CONFIGURED = bool(
     and EMAIL_HOST_PASSWORD
     and EMAIL_HOST_USER != "your.name@gmail.com"
     and "your-16-char" not in EMAIL_HOST_PASSWORD
+    and EMAIL_HOST_PASSWORD != "your-brevo-smtp-key"
 )
-# Render demo: Gmail app password when env vars are not set (override via Environment for production).
-if _on_render and not EMAIL_CONFIGURED:
-    EMAIL_HOST_USER = "poonghuzhali1990@gmail.com"
-    EMAIL_HOST_PASSWORD = "qlgLhbbMdj6Jp8pdVc71QjDA"
-    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-    SERVER_EMAIL = EMAIL_HOST_USER
-    EMAIL_CONFIGURED = True

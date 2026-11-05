@@ -32,8 +32,10 @@ python manage.py runserver
 | `CSRF_TRUSTED_ORIGINS` | `https://your-app.onrender.com` |
 | `GOOGLE_MAPS_API_KEY` | your key (restrict by Render URL) |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test or live keys (optional on Render: test keys apply automatically if unset; set both in **Environment** for live mode) |
-| `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | Gmail address + [app password](https://myaccount.google.com/apppasswords) (same as local `.env`; password **without spaces**) |
-| Other email vars | `EMAIL_HOST`, `EMAIL_PORT`, etc. are preset in `render.yaml` for Gmail |
+| `EMAIL_HOST_USER` | Brevo account login email |
+| `BREVO_SMTP_KEY` or `EMAIL_HOST_PASSWORD` | Brevo SMTP key from [Brevo → SMTP & API](https://app.brevo.com/settings/keys/smtp) |
+| `DEFAULT_FROM_EMAIL` | Must match a **verified sender** in Brevo |
+| Other email vars | `EMAIL_HOST=smtp-relay.brevo.com`, port `587`, TLS — preset in `render.yaml` |
 
 5. After first deploy, open the site and sign in to **Staff portal** (`/portal/login/`) with the account created on migrate (`admin@serviceportal.com` — password set in `portal/accounts.py`; change for production).
 

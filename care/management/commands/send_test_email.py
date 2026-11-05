@@ -36,8 +36,10 @@ class Command(BaseCommand):
         except Exception as exc:
             self.stderr.write(self.style.ERROR(f"SMTP failed: {exc}"))
             self.stderr.write(
-                "Check: Gmail 2-Step Verification on, App Password (not normal password), "
-                "EMAIL_HOST_USER matches that account, port 587 + TLS or 465 + SSL."
+                "Check Brevo: EMAIL_HOST=smtp-relay.brevo.com, port 587 + TLS, "
+                "EMAIL_HOST_USER = SMTP login email from Brevo dashboard, "
+                "EMAIL_HOST_PASSWORD or BREVO_SMTP_KEY = your SMTP key (not API key), "
+                "DEFAULT_FROM_EMAIL = a verified sender in Brevo."
             )
             if settings.EMAIL_HOST_USER != recipient and not options["recipient"]:
                 self.stderr.write(
