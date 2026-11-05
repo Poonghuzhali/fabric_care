@@ -1,0 +1,62 @@
+{% extends "portal/base.html" %}
+{% load care_tags portal_tags %}
+
+{% block content %}
+<section class="portal-stats">
+  <article class="portal-stat-card">
+    <p>Total bookings</p>
+    <strong>{{ booking_total }}</strong>
+  </article>
+  <article class="portal-stat-card">
+    <p>Pending</p>
+    <strong>{{ pending }}</strong>
+  </article>
+  <article class="portal-stat-card">
+    <p>In progress</p>
+    <strong>{{ in_progress }}</strong>
+  </article>
+  <article class="portal-stat-card">
+    <p>Completed</p>
+    <strong>{{ completed }}</strong>
+  </article>
+  <article class="portal-stat-card">
+    <p>Active services</p>
+    <strong>{{ active_services }}</strong>
+  </article>
+  <article class="portal-stat-card portal-stat-card--accent">
+    <p>Completed revenue</p>
+    <strong>{{ revenue|inr }}</strong>
+  </article>
+</section>
+
+<section class="portal-panel">
+  <header class="portal-panel__head">
+    <h2>Recent bookings</h2>
+    <a href="{% url 'portal:bookings' %}">View all</a>
+  </header>
+  <div class="portal-table-wrap">
+    <table class="portal-table">
+      <thead>
+        <tr>
+          <th>Guest</th>
+          <th>Service</th>
+          <th>Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in recent_bookings %}
+        <tr>
+          <td><a href="{% url 'portal:booking_detail' item.pk %}">{{ item.name }}</a></td>
+          <td>{{ item.service_name }}</td>
+          <td>{{ item.preferred_date }}</td>
+          <td><span class="{% portal_badge_class item.status %}">{{ item.status|portal_bucket_label }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No bookings yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

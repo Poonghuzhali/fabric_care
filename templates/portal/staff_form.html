@@ -1,0 +1,20 @@
+{% extends "portal/base.html" %}
+
+{% block content %}
+<section class="portal-panel portal-panel--narrow">
+  <form method="post" class="portal-form">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="portal-field{% if field.errors %} has-error{% endif %}">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<small class="field-error">{{ field.errors.0 }}</small>{% endif %}
+    </div>
+    {% endfor %}
+    <div class="portal-form__actions">
+      <button type="submit" class="portal-btn portal-btn--solid">Save</button>
+      <a class="portal-btn portal-btn--ghost" href="{% url 'portal:staff' %}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

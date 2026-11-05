@@ -1,0 +1,53 @@
+{% extends "portal/base.html" %}
+{% load portal_tags %}
+
+{% block content %}
+<section class="portal-panel portal-panel--narrow">
+  <p class="portal-meta">Requested {{ booking.created_at|date:"j M Y, g:i a" }}</p>
+  <h2 class="portal-panel__title">{{ booking.name }}</h2>
+  <p><span class="{% portal_badge_class booking.status %}">{{ booking.status|portal_bucket_label }}</span></p>
+  <dl class="portal-dl">
+    <div><dt>Email</dt><dd>{{ booking.email }}</dd></div>
+    <div><dt>Phone</dt><dd>{{ booking.phone }}</dd></div>
+    <div><dt>Service</dt><dd>{{ booking.service_name }}</dd></div>
+    <div><dt>Preferred date</dt><dd>{{ booking.preferred_date }}</dd></div>
+    <div><dt>Payment</dt><dd>{% if booking.payment_status == 'paid' %}Paid · ₹{{ booking.amount_paid }}{% if booking.payment_id %}<br><small>Ref {{ booking.payment_id }}</small>{% endif %}{% else %}{{ booking.get_payment_status_display }}{% endif %}</dd></div>
+    {% if booking.pickup_address %}
+    <div><dt>Pickup address</dt><dd>{{ booking.pickup_address|linebreaksbr }}</dd></div>
+    {% endif %}
+    {% if booking.pickup_maps_url %}
+    <div><dt>Pickup map</dt><dd><a class="portal-link" href="{{ booking.pickup_maps_url }}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a></dd></div>
+    {% endif %}
+  </dl>
+  {% if booking.notes %}
+  <p class="portal-notes"><strong>Notes:</strong> {{ booking.notes }}</p>
+  {% endif %}
+
+  <form method="post" class="portal-form" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <p class="portal-login-error" role="alert">{{ form.non_field_errors.0 }}</p>
+    {% endif %}
+    <div class="portal-field{% if form.status.errors %} has-error{% endif %}">
+      <label for="id_status">Update status</label>
+      {{ form.status }}
+      {% if form.status.errors %}<small class="field-error">{{ form.status.errors.0 }}</small>{% endif %}
+    </div>
+    <div class="portal-field{% if form.notes.errors %} has-error{% endif %}">
+      <label for="id_notes">Internal notes</label>
+      {{ form.notes }}
+      {% if form.notes.errors %}<small class="field-error">{{ form.notes.errors.0 }}</small>{% endif %}
+    </div>
+    <div class="portal-form__actions">
+      <button type="submit" class="portal-btn portal-btn--solid">Save changes</button>
+      <a class="portal-btn portal-btn--ghost" href="{% url 'portal:bookings' %}">Back</a>
+    </div>
+  </form>
+
+  <form method="post" action="{% url 'portal:booking_delete' booking.pk %}" class="portal-danger-zone" onsubmit="return confirm('Delete this booking permanently?');">
+    {% csrf_token %}
+    <p class="portal-muted">Remove this booking record from the studio.</p>
+    <button type="submit" class="portal-btn portal-btn--danger">Delete booking</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Register · {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}{% endblock %}
+
+{% block body_attrs %}class="auth-page"{% endblock %}
+
+{% block content %}
+<main class="auth-shell">
+  <div class="auth-card">
+    <p class="eyebrow">Create account</p>
+    <h1 class="auth-title">Register to book</h1>
+    <p class="auth-lede">New customers need an account before requesting a service. You can track every order from your profile.</p>
+    {% if form.non_field_errors %}
+    <p class="auth-error" role="alert">{{ form.non_field_errors.0 }}</p>
+    {% endif %}
+    <form method="post" class="auth-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field{% if form.full_name.errors %} has-error{% endif %}">
+        <label for="id_full_name">Full name</label>
+        {{ form.full_name }}
+        <small class="error" data-error-for="full_name">{% if form.full_name.errors %}{{ form.full_name.errors.0 }}{% endif %}</small>
+      </div>
+      <div class="field{% if form.email.errors %} has-error{% endif %}">
+        <label for="id_email">Email</label>
+        {{ form.email }}
+        <small class="error" data-error-for="email">{% if form.email.errors %}{{ form.email.errors.0 }}{% endif %}</small>
+      </div>
+      <div class="field{% if form.phone.errors %} has-error{% endif %}">
+        <label for="id_phone">Phone</label>
+        {{ form.phone }}
+        <small class="error" data-error-for="phone">{% if form.phone.errors %}{{ form.phone.errors.0 }}{% endif %}</small>
+      </div>
+      <div class="field{% if form.password1.errors %} has-error{% endif %}">
+        <label for="id_password1">Password</label>
+        {{ form.password1 }}
+        <small class="error" data-error-for="password1">{% if form.password1.errors %}{{ form.password1.errors.0 }}{% endif %}</small>
+      </div>
+      <div class="field{% if form.password2.errors %} has-error{% endif %}">
+        <label for="id_password2">Confirm password</label>
+        {{ form.password2 }}
+        <small class="error" data-error-for="password2">{% if form.password2.errors %}{{ form.password2.errors.0 }}{% endif %}</small>
+      </div>
+      <button class="btn btn-solid btn-block" type="submit">Create account</button>
+    </form>
+    <p class="auth-switch">Already registered? <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Sign in</a></p>
+    <a class="auth-back" href="/">← Back to website</a>
+  </div>
+</main>
+{% endblock %}

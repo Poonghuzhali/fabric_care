@@ -1,0 +1,20 @@
+{% extends "portal/base.html" %}
+
+{% block content %}
+<section class="portal-panel portal-panel--narrow">
+  <p class="portal-muted">Update public site contact details and hero timing.</p>
+  <form method="post" class="portal-form">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="portal-field{% if field.errors %} has-error{% endif %}">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<small class="field-error">{{ field.errors.0 }}</small>{% endif %}
+    </div>
+    {% endfor %}
+    <div class="portal-form__actions">
+      <button type="submit" class="portal-btn portal-btn--solid">Save settings</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

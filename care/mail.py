@@ -1,0 +1,63 @@
+import logging
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
+from care.templatetags.care_tags import format_inr
+
+logger = logging.getLogger(__name__)
+
+
+def _smtp_from_email(site=None):
+    """
+    Use the SMTP-authenticated address as From (required by Gmail and most providers).
+    Studio contact email goes in Reply-To instead of From.
+    """
+    from_email = settings.DEFAULT_FROM_EMAIL
+    if settings.EMAIL_HOST_USER and not from_email:
+        from_email = settings.EMAIL_HOST_USER
+    reply_to = []
+    if site and site.email:
+        studio = site.email.strip()
+        if studio and studio.lower() != str(from_email).lower():
+            reply_to = [studio]
+    return from_email, reply_to
+
+
+def send_booking_confirmation(booking, site=None):
+    """Send order confirmation to the customer's email."""
+    price = ""
+    if booking.service_id:
+        service = booking.service
+        if service is None:
+            from care.models import Service
+
+            service = Service.objects.filter(pk=booking.service_id).first()
+        if service:
+            price = format_inr(service.price)
+
+    site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+    context = {
+        "booking": booking,
+        "site": site,
+        "site_url": site_url,
+        "price": price,
+        "brand": site.brand_name if site and site.brand_name else "Vastra Care",
+    }
+    subject = render_to_string("emails/booking_confirmation_subject.txt", context).strip()
+    text_body = render_to_string("emails/booking_confirmation.txt", context)
+    html_body = render_to_string("emails/booking_confirmation.html", context)
+
+    from_email, reply_to = _smtp_from_email(site)
+
+    message = EmailMultiAlternatives(
+        subject=subject,
+        body=text_body,
+        from_email=from_email,
+        to=[booking.email],
+        reply_to=reply_to or None,
+    )
+    message.attach_alternative(html_body, "text/html")
+    message.send(fail_silently=False)
+    logger.info("Booking confirmation email sent to %s (booking #%s)", booking.email, booking.pk)

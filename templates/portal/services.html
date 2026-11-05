@@ -1,0 +1,52 @@
+{% extends "portal/base.html" %}
+{% load care_tags %}
+
+{% block content %}
+<div class="portal-toolbar">
+  <a class="portal-btn portal-btn--solid" href="{% url 'portal:service_create' %}">Add service</a>
+</div>
+<section class="portal-panel">
+  <div class="portal-table-wrap">
+    <table class="portal-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Price</th>
+          <th>Duration</th>
+          <th>Active</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in services %}
+        <tr>
+          <td>
+            <div class="portal-table__service">
+              {% if item.image %}
+              <img class="portal-table__thumb" src="{{ item.image.url }}" alt="">
+              {% endif %}
+              <span>
+                <strong>{{ item.name }}</strong><br>
+                <small>{{ item.summary }}</small>
+              </span>
+            </div>
+          </td>
+          <td>{{ item.price|inr }}</td>
+          <td>{{ item.duration }}</td>
+          <td>{% if item.is_active %}Yes{% else %}No{% endif %}</td>
+          <td class="portal-table__actions">
+            <a class="portal-link" href="{% url 'portal:service_edit' item.pk %}">Edit</a>
+            <form method="post" action="{% url 'portal:service_delete' item.pk %}" onsubmit="return confirm('Delete this service?');">
+              {% csrf_token %}
+              <button type="submit" class="portal-link portal-link--danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No services found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

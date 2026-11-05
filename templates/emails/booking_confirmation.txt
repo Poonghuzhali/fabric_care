@@ -1,0 +1,24 @@
+Hello {{ booking.name }},
+
+Thank you for choosing {{ brand }}. We have received your service request.
+
+Service: {{ booking.service_name }}
+{% if booking.payment_status == 'paid' and booking.amount_paid %}Amount paid: ₹{{ booking.amount_paid }}
+{% elif price %}Price (from): {{ price }}
+{% endif %}Preferred date: {{ booking.preferred_date|date:"j F Y" }}
+{% if booking.pickup_address %}Pickup address: {{ booking.pickup_address }}
+{% endif %}{% if booking.pickup_maps_url %}Pickup map: {{ booking.pickup_maps_url }}
+{% endif %}Phone: {{ booking.phone }}
+{% if booking.notes %}Notes: {{ booking.notes }}
+{% endif %}
+Reference: #{{ booking.id }}
+
+We will review your request and confirm shortly. You can track status anytime from your account:
+{{ site_url }}/account/
+
+{% if site %}
+{% if site.phone %}Phone: {{ site.phone }}
+{% endif %}{% if site.email %}Email: {{ site.email }}
+{% endif %}{% if site.address %}Address: {{ site.address }}
+{% endif %}{% endif %}
+— {{ brand }}
