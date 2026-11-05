@@ -4,6 +4,7 @@ set -o errexit
 pip install -r requirements.txt
 
 python manage.py migrate --noinput
+python manage.py ensure_portal_admin --reset-password
 python manage.py seed
 python manage.py collectstatic --noinput
 

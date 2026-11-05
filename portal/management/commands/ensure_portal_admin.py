@@ -17,12 +17,10 @@ class Command(BaseCommand):
         from portal.accounts import PORTAL_ADMIN_PASSWORD
         from django.contrib.auth import get_user_model
 
-        user, created = ensure_portal_admin()
+        user, changed = ensure_portal_admin(reset_password=options["reset_password"])
         if options["reset_password"]:
-            user.set_password(PORTAL_ADMIN_PASSWORD)
-            user.save()
             self.stdout.write(self.style.SUCCESS(f"Password reset for {PORTAL_ADMIN_EMAIL}"))
-        elif created:
-            self.stdout.write(self.style.SUCCESS(f"Created portal admin {PORTAL_ADMIN_EMAIL}"))
+        elif changed and user.date_joined:
+            self.stdout.write(self.style.SUCCESS(f"Portal admin ready: {PORTAL_ADMIN_EMAIL}"))
         else:
             self.stdout.write(f"Portal admin already exists: {PORTAL_ADMIN_EMAIL}")
