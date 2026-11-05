@@ -89,8 +89,9 @@
       {% endif %}
 
       <div class="booking-confirmation__actions">
-        <a class="btn btn-solid" href="/">Back to website</a>
+        <a class="btn btn-solid" href="{% url 'order_detail' booking.id %}">Track package</a>
         <a class="btn btn-line" href="{% url 'account' %}">View my orders</a>
+        <a class="btn btn-line" href="/">Back to website</a>
       </div>
     </div>
   </div>

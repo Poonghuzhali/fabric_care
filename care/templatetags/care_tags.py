@@ -60,3 +60,17 @@ def inr(value):
     if value is None or value == "":
         return ""
     return format_inr(value)
+
+
+@register.filter
+def order_headline(booking):
+    from care.order_tracking import order_headline as _headline
+
+    return _headline(booking)
+
+
+@register.filter
+def can_cancel_order(booking):
+    from care.order_tracking import customer_can_cancel
+
+    return customer_can_cancel(booking)

@@ -44,6 +44,7 @@ from .models import (
     SiteSetting,
     Testimonial,
 )
+from .order_tracking import build_tracking_timeline, customer_can_cancel
 from .templatetags.care_tags import format_inr
 
 logger = logging.getLogger(__name__)
@@ -254,7 +255,11 @@ def customer_register(request):
 
 @customer_login_required
 def customer_account(request):
-    bookings = Booking.objects.filter(customer=request.user).select_related("service")
+    bookings = (
+        Booking.objects.filter(customer=request.user)
+        .select_related("service")
+        .order_by("-created_at")
+    )
     profile = request.user.customer_profile
     return render(
         request,
@@ -265,6 +270,43 @@ def customer_account(request):
             "bookings": bookings,
         },
     )
+
+
+@customer_login_required
+def customer_order_detail(request, booking_id):
+    booking = get_object_or_404(
+        Booking.objects.select_related("service"),
+        pk=booking_id,
+        customer=request.user,
+        payment_status="paid",
+    )
+    return render(
+        request,
+        "account/order_detail.html",
+        {
+            "site": SiteSetting.objects.first(),
+            "booking": booking,
+            "tracking": build_tracking_timeline(booking),
+        },
+    )
+
+
+@customer_login_required
+@require_POST
+def customer_order_cancel(request, booking_id):
+    booking = get_object_or_404(
+        Booking,
+        pk=booking_id,
+        customer=request.user,
+        payment_status="paid",
+    )
+    if not customer_can_cancel(booking):
+        messages.error(request, "This order can no longer be cancelled online.")
+        return redirect("order_detail", booking_id=booking.id)
+    booking.status = "cancelled"
+    booking.save(update_fields=["status"])
+    messages.success(request, f"Order #{booking.id} has been cancelled.")
+    return redirect("order_detail", booking_id=booking.id)
 
 
 @customer_login_required

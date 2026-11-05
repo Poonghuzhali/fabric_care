@@ -1,63 +1,90 @@
 {% extends "base.html" %}
 {% load care_tags %}
 
-{% block title %}My account · {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}{% endblock %}
+{% block title %}My orders · {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}{% endblock %}
 
 {% block content %}
-<header class="nav auth-nav">
-  <div class="wrap nav-bar">
-    <a class="brand" href="/">
-      {% if site.logo %}<img src="{{ site.logo.url }}" alt="">{% else %}<span class="brand-fallback">VC</span>{% endif %}
-    </a>
-    <div class="nav-actions">
-      <div class="nav-actions__main">
-        <a class="btn btn-nav-login" href="/?open_book=1">Book a service</a>
-      </div>
-      <form class="nav-logout" method="post" action="{% url 'customer_logout' %}">
-        {% csrf_token %}
-        <button class="btn-icon-logout" type="submit" aria-label="Log out" title="Log out">{% icon "logout" 20 %}</button>
-      </form>
-    </div>
-  </div>
-</header>
+{% include "account/_account_header.html" %}
 
-<main class="account-page">
-  <div class="wrap">
-    <header class="account-head">
-      <p class="eyebrow">My profile</p>
-      <h1 class="section-title">Track your orders</h1>
-      <p class="account-meta">{{ profile.full_name }} · {{ profile.phone }} · {{ user.email }}</p>
+<main class="account-page orders-page">
+  <div class="wrap orders-page__wrap">
+    <header class="orders-page__head">
+      <div>
+        <p class="eyebrow">My account</p>
+        <h1 class="section-title">Your orders</h1>
+        <p class="account-meta">{{ profile.full_name }} · {{ profile.phone }} · {{ user.email }}</p>
+      </div>
+      <a class="orders-page__all-link" href="{% url 'account' %}">Refresh list</a>
     </header>
 
+    <div class="orders-toolbar">
+      <span class="orders-toolbar__count">{{ bookings|length }} order{{ bookings|length|pluralize }}</span>
+    </div>
+
     {% if bookings %}
-    <div class="order-table-wrap">
-      <table class="order-table">
-        <thead>
-          <tr>
-            <th>Service</th>
-            <th>Preferred date</th>
-            <th>Status</th>
-            <th>Requested</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for booking in bookings %}
-          <tr>
-            <td>
-              <strong>{{ booking.service_name }}</strong>
-              {% if booking.notes %}<small>{{ booking.notes|truncatechars:80 }}</small>{% endif %}
-            </td>
-            <td>{{ booking.preferred_date|date:"j M Y" }}</td>
-            <td><span class="status-pill status-pill--{{ booking.status }}">{{ booking.get_status_display }}</span></td>
-            <td>{{ booking.created_at|date:"j M Y, g:i A" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="order-card-list">
+      {% for booking in bookings %}
+      <article class="order-card">
+        <header class="order-card__meta">
+          <div class="order-card__meta-grid">
+            <div>
+              <span class="order-card__meta-label">Order placed</span>
+              <strong>{{ booking.created_at|date:"j F Y" }}</strong>
+            </div>
+            <div>
+              <span class="order-card__meta-label">Total</span>
+              <strong>{{ booking.amount_paid|inr }}</strong>
+            </div>
+            <div class="order-card__ship">
+              <span class="order-card__meta-label">Pickup at</span>
+              <strong title="{{ booking.pickup_address }}">{{ booking.pickup_address|truncatechars:42 }}</strong>
+            </div>
+          </div>
+          <div class="order-card__meta-side">
+            <span class="order-card__meta-label">Order #{{ booking.id }}</span>
+            <a href="{% url 'order_detail' booking.id %}">View order details</a>
+          </div>
+        </header>
+        <div class="order-card__body">
+          <div class="order-card__main">
+            <p class="order-card__status-line">{{ booking|order_headline }}</p>
+            <div class="order-card__product">
+              {% if booking.service and booking.service.image %}
+              <img class="order-card__thumb" src="{{ booking.service.image.url }}" alt="">
+              {% else %}
+              <div class="order-card__thumb order-card__thumb--placeholder" aria-hidden="true">VC</div>
+              {% endif %}
+              <div>
+                <a class="order-card__title" href="{% url 'order_detail' booking.id %}">{{ booking.service_name }}</a>
+                <p class="order-card__sub">Preferred date: {{ booking.preferred_date|date:"j M Y" }}</p>
+                <span class="status-pill status-pill--{{ booking.status }}">{{ booking.get_status_display }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="order-card__actions">
+            {% if booking.payment_status == 'paid' %}
+            <a class="btn btn-solid btn-block order-card__btn" href="{% url 'order_detail' booking.id %}">Track package</a>
+            {% else %}
+            <p class="order-card__muted">Payment pending — complete checkout to track this order.</p>
+            {% endif %}
+            {% if booking|can_cancel_order %}
+            <form method="post" action="{% url 'order_cancel' booking.id %}" class="order-card__cancel-form">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-line btn-block order-card__btn" onclick="return confirm('Request cancellation for order #{{ booking.id }}?');">Request cancellation</button>
+            </form>
+            {% elif booking.status == 'cancelled' %}
+            <p class="order-card__muted">Cancellation processed</p>
+            {% else %}
+            <p class="order-card__muted">Cancellation not available at this stage</p>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
     </div>
     {% else %}
     <div class="account-empty">
-      <p>You have no bookings yet.</p>
+      <p>You have no orders yet.</p>
       <a class="btn btn-solid" href="/?open_book=1">Book your first service</a>
     </div>
     {% endif %}

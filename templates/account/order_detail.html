@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load care_tags %}
+
+{% block title %}Track order #{{ booking.id }} · {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}{% endblock %}
+
+{% block content %}
+{% include "account/_account_header.html" %}
+
+<main class="account-page order-track-page">
+  <div class="wrap order-track__wrap">
+    <header class="order-track__head">
+      <div class="order-track__head-main">
+        <p class="order-track__headline">{{ booking|order_headline }}</p>
+        {% if booking.service and booking.service.image %}
+        <img class="order-track__thumb" src="{{ booking.service.image.url }}" alt="">
+        {% endif %}
+      </div>
+      <a class="orders-page__all-link" href="{% url 'account' %}">See all orders</a>
+    </header>
+
+    {% if tracking.cancelled %}
+    <section class="order-track__panel order-track__panel--cancelled">
+      <h2 class="order-track__stage">Order cancelled</h2>
+      <p class="order-track__sub">This booking is no longer active. Contact the studio if you need help.</p>
+    </section>
+    {% else %}
+    <section class="order-track__panel">
+      <h2 class="order-track__stage">{{ tracking.stage_label }}</h2>
+      <p class="order-track__sub">{{ booking.service_name }} · Order #{{ booking.id }}</p>
+
+      <div class="track-timeline" style="--track-progress: {{ tracking.progress_percent }}%;">
+        <div class="track-timeline__bar" aria-hidden="true">
+          <span class="track-timeline__fill"></span>
+        </div>
+        <ol class="track-timeline__steps">
+          {% for step in tracking.steps %}
+          <li class="track-timeline__step {% if step.done %}is-done{% endif %} {% if step.active %}is-active{% endif %}">
+            <span class="track-timeline__dot" aria-hidden="true">
+              {% if step.done %}✓{% endif %}
+            </span>
+            <span class="track-timeline__label">{{ step.label }}</span>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </section>
+    {% endif %}
+
+    <div class="order-track__cards">
+      <section class="order-track__card">
+        <h3>Service with {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}</h3>
+        <p class="order-track__mono">Reference: VC-{{ booking.id }}</p>
+        {% if booking.payment_id %}
+        <p class="order-track__mono">Payment ID: {{ booking.payment_id }}</p>
+        {% endif %}
+        <a href="{% url 'account' %}">See all updates</a>
+        {% if booking|can_cancel_order %}
+        <form method="post" action="{% url 'order_cancel' booking.id %}" class="order-track__cancel">
+          {% csrf_token %}
+          <button type="submit" class="order-track__cancel-btn" onclick="return confirm('Request cancellation for order #{{ booking.id }}?');">
+            <span class="order-track__cancel-icon" aria-hidden="true">×</span>
+            Request cancellation
+          </button>
+        </form>
+        {% endif %}
+      </section>
+
+      <section class="order-track__card">
+        <h3>Pickup address</h3>
+        <p class="order-track__address">
+          <strong>{{ booking.name }}</strong><br>
+          {{ booking.pickup_address|linebreaksbr }}
+        </p>
+        {% if booking.pickup_maps_url %}
+        <a href="{{ booking.pickup_maps_url }}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+        {% endif %}
+      </section>
+
+      <section class="order-track__card">
+        <h3>Order info</h3>
+        <dl class="order-track__info">
+          <div><dt>Placed</dt><dd>{{ booking.created_at|date:"j F Y, g:i A" }}</dd></div>
+          <div><dt>Preferred date</dt><dd>{{ booking.preferred_date|date:"j F Y" }}</dd></div>
+          <div><dt>Total paid</dt><dd>{{ booking.amount_paid|inr }}</dd></div>
+          <div><dt>Status</dt><dd><span class="status-pill status-pill--{{ booking.status }}">{{ booking.get_status_display }}</span></dd></div>
+        </dl>
+        <a href="{% url 'booking_confirmation' booking.id %}">View order receipt</a>
+      </section>
+    </div>
+  </div>
+</main>
+{% endblock %}

@@ -228,7 +228,7 @@ class LandingPageTests(TestCase):
         )
         self.assertRedirects(verify, "/")
         account = self.client.get(reverse("account"))
-        self.assertContains(account, "Track your orders")
+        self.assertContains(account, "Your orders")
         self.assertContains(account, "Rahul Menon")
 
     def test_customer_login_page_requires_credentials(self):
