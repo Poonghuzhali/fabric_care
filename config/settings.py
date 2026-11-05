@@ -31,6 +31,17 @@ if _render_host:
     if _render_origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(_render_origin)
 
+CSRF_TRUSTED_ORIGINS = sorted({origin.rstrip("/") for origin in CSRF_TRUSTED_ORIGINS if origin})
+
+CSRF_FAILURE_VIEW = "config.views.csrf_failure"
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

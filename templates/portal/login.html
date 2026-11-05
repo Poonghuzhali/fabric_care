@@ -11,6 +11,13 @@
   <link rel="stylesheet" href="{% static 'css/portal.css' %}">
 </head>
 <body class="portal-login-page">
+  {% if messages %}
+  <div class="portal-login-messages" role="status">
+    {% for message in messages %}
+    <p class="portal-login-error">{{ message }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="portal-login-card">
     <p class="portal-login-eyebrow">Service portal</p>
     <h1>Sign in to the admin panel</h1>

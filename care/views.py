@@ -9,6 +9,7 @@ from django.contrib.auth import login, logout
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST, require_http_methods
 
 from .decorators import customer_login_required
@@ -104,6 +105,7 @@ def _customer_account_redirect(user):
     return redirect("account")
 
 
+@ensure_csrf_cookie
 @require_http_methods(["GET", "POST"])
 def customer_login(request):
     if request.user.is_authenticated:
@@ -128,6 +130,7 @@ def customer_login(request):
     )
 
 
+@ensure_csrf_cookie
 @require_http_methods(["GET", "POST"])
 def customer_register(request):
     if request.user.is_authenticated and not request.user.is_staff:
