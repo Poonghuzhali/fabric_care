@@ -32,9 +32,11 @@ python manage.py runserver
 | `CSRF_TRUSTED_ORIGINS` | `https://your-app.onrender.com` |
 | `GOOGLE_MAPS_API_KEY` | your key (restrict by Render URL) |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test or live keys (optional on Render: test keys apply automatically if unset; set both in **Environment** for live mode) |
-| `EMAIL_HOST_USER` | Brevo **SMTP login** (e.g. `xxxx@smtp-brevo.com` from Brevo dashboard) |
-| `BREVO_SMTP_KEY` or `EMAIL_HOST_PASSWORD` | Brevo SMTP key from [Brevo → SMTP & API](https://app.brevo.com/settings/keys/smtp) |
-| `DEFAULT_FROM_EMAIL` | **Verified sender** in Brevo (your real email — not `@smtp-brevo.com`) |
+| `BREVO_API_KEY` | Brevo **API key** (`xkeysib-…`) — recommended on Render ([SMTP & API](https://app.brevo.com/settings/keys/api)) |
+| `EMAIL_HOST_USER` | Brevo **SMTP login** (`xxxx@smtp-brevo.com`) if not using API key |
+| `BREVO_SMTP_KEY` | Brevo **SMTP password** (not the API key) when using SMTP relay |
+| `DEFAULT_FROM_EMAIL` | **Verified sender** in Brevo (e.g. your Gmail — not `@smtp-brevo.com`) |
+| Brevo IP security | Turn **off** strict IP allowlisting for Render, or outbound mail will fail |
 | Other email vars | `EMAIL_HOST=smtp-relay.brevo.com`, port `587`, TLS — preset in `render.yaml` |
 
 5. After first deploy, open the site and sign in to **Staff portal** (`/portal/login/`) with the account created on migrate (`admin@serviceportal.com` — password set in `portal/accounts.py`; change for production).

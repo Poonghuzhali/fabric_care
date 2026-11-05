@@ -299,7 +299,19 @@
       },
       body: JSON.stringify(body),
     });
-    const payload = await response.json();
+    let payload = {};
+    try {
+      payload = JSON.parse(await response.text());
+    } catch (parseError) {
+      if (window.VastraForms) {
+        window.VastraForms.showFormError(
+          form,
+          "Payment succeeded but we could not finish the booking. Please contact the studio with your payment receipt."
+        );
+      }
+      if (button) button.disabled = false;
+      return;
+    }
     if (!response.ok || !payload.ok) {
       if (payload.redirect) {
         window.location.href = payload.redirect;
@@ -308,10 +320,11 @@
       if (window.VastraForms) {
         window.VastraForms.applyServerErrors(form, payload.errors || {});
       }
+      if (button) button.disabled = false;
       return;
     }
     if (payload.redirect) {
-      window.location.href = payload.redirect;
+      window.location.replace(payload.redirect);
       return;
     }
     form.reset();

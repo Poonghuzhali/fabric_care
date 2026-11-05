@@ -166,8 +166,10 @@ EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "").strip()
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").replace(" ", "")
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "").strip()
+BREVO_SMTP_KEY = os.environ.get("BREVO_SMTP_KEY", "").strip()
 if not EMAIL_HOST_PASSWORD:
-    EMAIL_HOST_PASSWORD = os.environ.get("BREVO_SMTP_KEY", "").strip()
+    EMAIL_HOST_PASSWORD = BREVO_SMTP_KEY
 if not EMAIL_HOST_PASSWORD:
     EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "").replace(" ", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() in ("1", "true", "yes")
@@ -198,10 +200,14 @@ if _on_render:
         EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_CONFIGURED = bool(
-    EMAIL_HOST
-    and EMAIL_HOST_USER
-    and EMAIL_HOST_PASSWORD
-    and EMAIL_HOST_USER != "your.name@gmail.com"
-    and "your-16-char" not in EMAIL_HOST_PASSWORD
-    and EMAIL_HOST_PASSWORD != "your-brevo-smtp-key"
+    BREVO_API_KEY
+    or (
+        EMAIL_HOST
+        and EMAIL_HOST_USER
+        and EMAIL_HOST_PASSWORD
+        and EMAIL_HOST_USER != "your.name@gmail.com"
+        and "your-16-char" not in EMAIL_HOST_PASSWORD
+        and EMAIL_HOST_PASSWORD != "your-brevo-smtp-key"
+        and not EMAIL_HOST_PASSWORD.startswith("xkeysib-")
+    )
 )

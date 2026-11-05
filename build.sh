@@ -30,12 +30,15 @@ email_pass = (
     or os.environ.get("BREVO_SMTP_KEY", "").strip()
     or os.environ.get("GMAIL_APP_PASSWORD", "").replace(" ", "")
 )
-if on_render and (not email_user or not email_pass):
+brevo_api = os.environ.get("BREVO_API_KEY", "").strip()
+if on_render and brevo_api:
+    print("Brevo API key set on Render. Booking confirmation emails use Brevo HTTP API.")
+elif on_render and (not email_user or not email_pass):
     print(
         "BUILD WARNING: Booking confirmation email will NOT send until you set "
-        "EMAIL_HOST_USER and BREVO_SMTP_KEY (or EMAIL_HOST_PASSWORD) in Render Environment."
+        "BREVO_API_KEY (xkeysib-…) or EMAIL_HOST_USER + BREVO_SMTP_KEY on Render."
     )
 elif on_render:
     host = os.environ.get("EMAIL_HOST", "smtp-relay.brevo.com")
-    print(f"SMTP configured on Render via {host} (sender login: {email_user}). Booking emails enabled.")
+    print(f"SMTP configured on Render via {host} (login: {email_user}). Booking emails enabled.")
 PY

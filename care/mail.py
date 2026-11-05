@@ -4,13 +4,16 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
+from care.brevo_mail import get_brevo_api_key, send_transactional_email
 from care.templatetags.care_tags import format_inr
 
 logger = logging.getLogger(__name__)
 
 
 def email_delivery_enabled():
-    """True when mail will leave the app (SMTP or test locmem), not console-only."""
+    """True when mail will leave the app (Brevo API, SMTP, or test locmem)."""
+    if get_brevo_api_key():
+        return True
     backend = (settings.EMAIL_BACKEND or "").lower()
     if "console" in backend:
         return False
@@ -66,6 +69,24 @@ def send_booking_confirmation(booking, site=None):
     html_body = render_to_string("emails/booking_confirmation.html", context)
 
     from_email, reply_to = _smtp_from_email(site)
+    brand = site.brand_name if site and site.brand_name else "Vastra Care"
+
+    if get_brevo_api_key():
+        send_transactional_email(
+            sender_email=from_email,
+            sender_name=brand,
+            to_email=booking.email,
+            to_name=booking.name,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+        )
+        logger.info(
+            "Booking confirmation email sent via Brevo API to %s (booking #%s)",
+            booking.email,
+            booking.pk,
+        )
+        return
 
     message = EmailMultiAlternatives(
         subject=subject,

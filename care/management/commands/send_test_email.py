@@ -36,10 +36,10 @@ class Command(BaseCommand):
         except Exception as exc:
             self.stderr.write(self.style.ERROR(f"SMTP failed: {exc}"))
             self.stderr.write(
-                "Check Brevo: EMAIL_HOST=smtp-relay.brevo.com, port 587 + TLS, "
-                "EMAIL_HOST_USER = SMTP login email from Brevo dashboard, "
-                "EMAIL_HOST_PASSWORD or BREVO_SMTP_KEY = your SMTP key (not API key), "
-                "DEFAULT_FROM_EMAIL = a verified sender in Brevo."
+                "Check Brevo: BREVO_API_KEY (xkeysib-…) OR SMTP (smtp-relay.brevo.com, "
+                "EMAIL_HOST_USER=c1a0e2001@smtp-brevo.com, BREVO_SMTP_KEY=SMTP password). "
+                "DEFAULT_FROM_EMAIL must be a verified sender. "
+                "If IP allowlisting is on in Brevo, disable it or Render mail will fail."
             )
             if settings.EMAIL_HOST_USER != recipient and not options["recipient"]:
                 self.stderr.write(
