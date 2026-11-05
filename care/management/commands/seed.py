@@ -34,6 +34,99 @@ HERO_SUBTITLE = (
     "with care and precision."
 )
 
+SERVICE_ROWS = [
+    (
+        "Saree Rolling",
+        "Image (Saree Rolling).png",
+        "Neat and professional rolling for easy storage and handling.",
+        "Sarees are rolled along the length, with the border aligned and the pallu protected, so they store without a hard crease.",
+        "30 min",
+        "60.00",
+        True,
+    ),
+    (
+        "Towel Ironing & Refreshing",
+        "Image (Towel Ironing & Refreshing).png",
+        "Fresh, neat and comfortable finishing for towels.",
+        "Towels are refreshed, pressed lightly and stacked square, without the flat, scorched finish of a heavy iron.",
+        "25 min",
+        "20.00",
+        True,
+    ),
+    (
+        "Coat & Delicate Fabric Steam Refresh",
+        "Image (Coat & Delicate Fabric Steam Refresh).png",
+        "Gentle steam treatment for coats and delicate fabrics.",
+        "Coats, blends and delicate tailoring are steamed on the hanger so the shape returns and the surface stays soft.",
+        "50 min",
+        "150.00",
+        True,
+    ),
+    (
+        "Cotton Veshti Starching & Polishing",
+        "Image (Cotton Veshti Starching & Polishing).png",
+        "Crisp starching and polished finishing for cotton veshti.",
+        "Cotton veshtis are given a light starch and a slow polish so the cloth is crisp and the zari border lies flat.",
+        "40 min",
+        "80.00",
+        True,
+    ),
+    (
+        "Silk Veshti Polishing",
+        "Image (Silk Veshti Polishing).png",
+        "Careful polishing to maintain the premium silk appearance.",
+        "Silk veshtis are polished at a gentle heat. The body stays supple and the border keeps its shine.",
+        "45 min",
+        "120.00",
+        True,
+    ),
+    (
+        "Bed Sheet & Cover Ironing",
+        "Image (Bed Sheet & Cover Ironing).png",
+        "Smooth and neatly finished bed sheets and covers.",
+        "Bed sheets, duvet covers and pillowcases are ironed flat and folded to a neat stack.",
+        "30 min",
+        "40.00",
+        True,
+    ),
+    (
+        "Saree Pre-Pleating",
+        "Image (Saree Pre-Pleating).png",
+        "Ready-to-wear pre-pleating for convenient styling.",
+        "Pleats are measured, pressed and secured for the occasion, so the saree can be worn without pinning at the last minute.",
+        "90 min",
+        "250.00",
+        False,
+    ),
+    (
+        "Saree Polishing",
+        "Image (Saree Polishing).png",
+        "Professional polishing to enhance the saree's finish and appearance.",
+        "Silk and rich cotton sarees are polished by hand until the body is even and the border catches the light again.",
+        "60 min",
+        "150.00",
+        False,
+    ),
+    (
+        "Cotton Saree Starching & Polishing",
+        "Image (Cotton Saree Starching & Polishing).png",
+        "Crisp starching with a clean, polished finish.",
+        "Cotton sarees receive just enough starch to hold a fall, then a polish that keeps the cloth breathable.",
+        "50 min",
+        "120.00",
+        False,
+    ),
+    (
+        "Saree Folding",
+        "Image (Saree Folding).png",
+        "Neat and careful folding for organized storage.",
+        "Each saree is folded to a clean square with the border visible, ready for the cupboard or a gift box.",
+        "20 min",
+        "40.00",
+        False,
+    ),
+]
+
 
 def _source(name):
     path = IMAGES / name
@@ -101,12 +194,49 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         if SiteSetting.objects.exists() and not options["reset"]:
-            self.stdout.write("Landing page is already loaded. Use --reset to replace it.")
+            self._sync_media()
+            self.stdout.write(
+                "Landing page content is already loaded; media files were synced from Images/."
+            )
             return
         if options["reset"]:
             self._clear()
         self._create()
         self.stdout.write(self.style.SUCCESS("Landing page content is ready."))
+
+    def _sync_media(self):
+        """Rebuild uploaded image files (Render deploys start with an empty media/ folder)."""
+        site = SiteSetting.objects.first()
+        if not site:
+            return
+        site.logo = _file(_logo_path(), "brand/logo.png")
+        site.save(update_fields=["logo"])
+
+        about = AboutSection.objects.first()
+        if about:
+            about.image = _file(_source("Image (Saree Pre-Pleating).png"), "about/studio.png")
+            about.save(update_fields=["image"])
+
+        slide_specs = [
+            (1, "hero/saree-care.png", _source("Image (Saree Care).png"), False),
+            (2, "hero/professional-ironing.png", _source("Image (Professional Ironing).png"), False),
+            (3, "hero/neatly-finished.jpg", None, True),
+        ]
+        for order, stored, source, generated in slide_specs:
+            slide = HeroSlide.objects.filter(order=order).first()
+            if not slide:
+                continue
+            slide.image = _neatly_finished() if generated else _file(source, stored)
+            slide.save(update_fields=["image"])
+
+        for index, row in enumerate(SERVICE_ROWS, start=1):
+            name, filename, _summary, _description, _duration, _price, _footer = row
+            slug = name.lower().replace(" & ", "-").replace(" ", "-")
+            service = Service.objects.filter(name=name).first() or Service.objects.filter(order=index).first()
+            if not service:
+                continue
+            service.image = _file(_source(filename), f"services/{slug}.png")
+            service.save(update_fields=["image"])
 
     def _clear(self):
         Booking.objects.all().delete()
@@ -229,99 +359,7 @@ class Command(BaseCommand):
             subheading="",
         )
 
-        services = [
-            (
-                "Saree Rolling",
-                "Image (Saree Rolling).png",
-                "Neat and professional rolling for easy storage and handling.",
-                "Sarees are rolled along the length, with the border aligned and the pallu protected, so they store without a hard crease.",
-                "30 min",
-                "60.00",
-                True,
-            ),
-            (
-                "Towel Ironing & Refreshing",
-                "Image (Towel Ironing & Refreshing).png",
-                "Fresh, neat and comfortable finishing for towels.",
-                "Towels are refreshed, pressed lightly and stacked square, without the flat, scorched finish of a heavy iron.",
-                "25 min",
-                "20.00",
-                True,
-            ),
-            (
-                "Coat & Delicate Fabric Steam Refresh",
-                "Image (Coat & Delicate Fabric Steam Refresh).png",
-                "Gentle steam treatment for coats and delicate fabrics.",
-                "Coats, blends and delicate tailoring are steamed on the hanger so the shape returns and the surface stays soft.",
-                "50 min",
-                "150.00",
-                True,
-            ),
-            (
-                "Cotton Veshti Starching & Polishing",
-                "Image (Cotton Veshti Starching & Polishing).png",
-                "Crisp starching and polished finishing for cotton veshti.",
-                "Cotton veshtis are given a light starch and a slow polish so the cloth is crisp and the zari border lies flat.",
-                "40 min",
-                "80.00",
-                True,
-            ),
-            (
-                "Silk Veshti Polishing",
-                "Image (Silk Veshti Polishing).png",
-                "Careful polishing to maintain the premium silk appearance.",
-                "Silk veshtis are polished at a gentle heat. The body stays supple and the border keeps its shine.",
-                "45 min",
-                "120.00",
-                True,
-            ),
-            (
-                "Bed Sheet & Cover Ironing",
-                "Image (Bed Sheet & Cover Ironing).png",
-                "Smooth and neatly finished bed sheets and covers.",
-                "Bed sheets, duvet covers and pillowcases are ironed flat and folded to a neat stack.",
-                "30 min",
-                "40.00",
-                True,
-            ),
-            (
-                "Saree Pre-Pleating",
-                "Image (Saree Pre-Pleating).png",
-                "Ready-to-wear pre-pleating for convenient styling.",
-                "Pleats are measured, pressed and secured for the occasion, so the saree can be worn without pinning at the last minute.",
-                "90 min",
-                "250.00",
-                False,
-            ),
-            (
-                "Saree Polishing",
-                "Image (Saree Polishing).png",
-                "Professional polishing to enhance the saree's finish and appearance.",
-                "Silk and rich cotton sarees are polished by hand until the body is even and the border catches the light again.",
-                "60 min",
-                "150.00",
-                False,
-            ),
-            (
-                "Cotton Saree Starching & Polishing",
-                "Image (Cotton Saree Starching & Polishing).png",
-                "Crisp starching with a clean, polished finish.",
-                "Cotton sarees receive just enough starch to hold a fall, then a polish that keeps the cloth breathable.",
-                "50 min",
-                "120.00",
-                False,
-            ),
-            (
-                "Saree Folding",
-                "Image (Saree Folding).png",
-                "Neat and careful folding for organized storage.",
-                "Each saree is folded to a clean square with the border visible, ready for the cupboard or a gift box.",
-                "20 min",
-                "40.00",
-                False,
-            ),
-        ]
-        for index, row in enumerate(services, start=1):
+        for index, row in enumerate(SERVICE_ROWS, start=1):
             name, filename, summary, description, duration, price, footer = row
             slug = name.lower().replace(" & ", "-").replace(" ", "-")
             Service.objects.create(
