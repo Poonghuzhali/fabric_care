@@ -31,7 +31,7 @@ python manage.py runserver
 | `ALLOWED_HOSTS` | `your-app.onrender.com` |
 | `CSRF_TRUSTED_ORIGINS` | `https://your-app.onrender.com` |
 | `GOOGLE_MAPS_API_KEY` | your key (restrict by Render URL) |
-| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test or live keys |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test or live keys (optional on Render: test keys apply automatically if unset; set both in **Environment** for live mode) |
 | Gmail SMTP vars | same as local `.env` |
 
 5. After first deploy, open the site and sign in to **Staff portal** (`/portal/login/`) with the account created on migrate (`admin@serviceportal.com` — password set in `portal/accounts.py`; change for production).

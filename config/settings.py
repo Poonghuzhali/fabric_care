@@ -137,6 +137,12 @@ GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "").strip()
 
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "").strip()
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "").strip()
+# Render demo: use Razorpay test keys when env vars are not set (override via Environment for live keys).
+if os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip() and not (
+    RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET
+):
+    RAZORPAY_KEY_ID = "rzp_test_TwPx3y5C93Wi2O"
+    RAZORPAY_KEY_SECRET = "qlgLhbbMdj6Jp8pdVc71QjDA"
 PAYMENT_SKIP_VERIFY = os.environ.get("PAYMENT_SKIP_VERIFY", "").lower() in ("1", "true", "yes")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "hello@vastracare.in")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL

@@ -33,6 +33,7 @@ services:
         sync: false
       - key: GOOGLE_MAPS_API_KEY
         sync: false
+      # Set both in Render → Environment (same values as local .env). Key ID is public at checkout.
       - key: RAZORPAY_KEY_ID
         sync: false
       - key: RAZORPAY_KEY_SECRET
