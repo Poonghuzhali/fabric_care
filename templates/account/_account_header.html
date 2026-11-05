@@ -7,7 +7,7 @@
     <div class="nav-actions">
       <div class="nav-actions__main">
         <a class="btn btn-nav-login" href="{% url 'account' %}">My orders</a>
-        <a class="btn btn-line" href="/?open_book=1">Book a service</a>
+        <a class="btn btn-nav-login" href="/?open_book=1">Book a service</a>
       </div>
       <form class="nav-logout" method="post" action="{% url 'customer_logout' %}">
         {% csrf_token %}
