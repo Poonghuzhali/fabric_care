@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 
-from .models import Service
+from .models import CustomerAddress, Service
 
 
 class CustomerRegistrationForm(forms.Form):
@@ -134,6 +134,7 @@ class BookingForm(forms.Form):
         widget=forms.HiddenInput(),
     )
     pickup_maps_url = forms.URLField(required=False, max_length=500)
+    saved_address_id = forms.CharField(required=False)
     notes = forms.CharField(required=False, max_length=800)
 
     def __init__(self, *args, user=None, **kwargs):
@@ -181,8 +182,32 @@ class BookingForm(forms.Form):
             raise forms.ValidationError("Enter the full pickup address (at least 10 characters).")
         return address
 
+    def clean_saved_address_id(self):
+        raw = (self.cleaned_data.get("saved_address_id") or "").strip()
+        if not raw:
+            return None
+        try:
+            return int(raw)
+        except ValueError as exc:
+            raise forms.ValidationError("Invalid saved address.") from exc
+
     def clean(self):
         cleaned = super().clean()
+        saved_id = cleaned.get("saved_address_id")
+        if saved_id:
+            if not self.user or not self.user.is_authenticated:
+                self.add_error("saved_address_id", "Choose a saved address after signing in.")
+                return cleaned
+            saved = CustomerAddress.objects.filter(pk=saved_id, customer=self.user).first()
+            if not saved:
+                self.add_error("saved_address_id", "That saved address was not found.")
+                return cleaned
+            cleaned["pickup_address"] = saved.address
+            cleaned["pickup_latitude"] = saved.latitude
+            cleaned["pickup_longitude"] = saved.longitude
+            cleaned["pickup_maps_url"] = saved.maps_url or ""
+            return cleaned
+
         lat = cleaned.get("pickup_latitude")
         lng = cleaned.get("pickup_longitude")
         if lat is None or lng is None:
@@ -200,6 +225,45 @@ class BookingForm(forms.Form):
         if not (-90 <= lat_f <= 90 and -180 <= lng_f <= 180):
             self.add_error("pickup_latitude", "Invalid map location.")
             return cleaned
+        maps_url = (cleaned.get("pickup_maps_url") or "").strip()
+        if not maps_url:
+            cleaned["pickup_maps_url"] = f"https://www.google.com/maps?q={lat},{lng}"
+        return cleaned
+
+
+class CustomerAddressForm(forms.Form):
+    label = forms.CharField(
+        max_length=40,
+        required=False,
+        label="Address label",
+        widget=forms.TextInput(attrs={"placeholder": "Home, Office, etc."}),
+    )
+    pickup_address = forms.CharField(
+        max_length=400,
+        label="Pickup address",
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Full street address"}),
+    )
+    pickup_latitude = forms.DecimalField(max_digits=9, decimal_places=6)
+    pickup_longitude = forms.DecimalField(max_digits=9, decimal_places=6)
+    pickup_maps_url = forms.URLField(required=False, max_length=500)
+
+    def clean_pickup_address(self):
+        address = " ".join(self.cleaned_data["pickup_address"].split())
+        if len(address) < 10:
+            raise forms.ValidationError("Enter the full pickup address (at least 10 characters).")
+        return address
+
+    def clean(self):
+        cleaned = super().clean()
+        lat = cleaned.get("pickup_latitude")
+        lng = cleaned.get("pickup_longitude")
+        try:
+            lat_f = float(lat)
+            lng_f = float(lng)
+        except (TypeError, ValueError, InvalidOperation):
+            raise forms.ValidationError("Paste a Google Maps link or set a map pin for this address.")
+        if not (-90 <= lat_f <= 90 and -180 <= lng_f <= 180):
+            raise forms.ValidationError("Invalid map location.")
         maps_url = (cleaned.get("pickup_maps_url") or "").strip()
         if not maps_url:
             cleaned["pickup_maps_url"] = f"https://www.google.com/maps?q={lat},{lng}"

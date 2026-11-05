@@ -7,6 +7,7 @@ from .models import (
     Booking,
     CallToAction,
     ContactMessage,
+    CustomerAddress,
     CustomerProfile,
     CtaPoint,
     DifferenceItem,
@@ -187,6 +188,13 @@ def mark_bookings_completed(modeladmin, request, queryset):
 class CustomerProfileAdmin(admin.ModelAdmin):
     list_display = ("full_name", "phone", "user")
     search_fields = ("full_name", "phone", "user__email", "user__username")
+
+
+@admin.register(CustomerAddress)
+class CustomerAddressAdmin(admin.ModelAdmin):
+    list_display = ("display_label", "customer", "is_default", "updated_at")
+    list_filter = ("is_default",)
+    search_fields = ("label", "address", "customer__email")
 
 
 @admin.register(Booking)

@@ -13,7 +13,13 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST, require_http_methods
 
 from .decorators import customer_login_required
-from .forms import BookingForm, ContactForm, CustomerLoginForm, CustomerRegistrationForm
+from .customer_addresses import (
+    address_payload,
+    addresses_for_user,
+    remember_customer_address,
+    set_default_address,
+)
+from .forms import BookingForm, ContactForm, CustomerAddressForm, CustomerLoginForm, CustomerRegistrationForm
 from .email_timeout import run_with_timeout
 from .mail import email_delivery_enabled, send_booking_confirmation, send_registration_otp_email
 from .registration_otp import (
@@ -34,6 +40,7 @@ from .models import (
     Booking,
     CallToAction,
     ContactMessage,
+    CustomerAddress,
     CtaPoint,
     DifferenceItem,
     HeroSlide,
@@ -261,6 +268,8 @@ def customer_account(request):
         .order_by("-created_at")
     )
     profile = request.user.customer_profile
+    saved_addresses = list(addresses_for_user(request.user))
+    address_form = CustomerAddressForm()
     return render(
         request,
         "account/profile.html",
@@ -268,6 +277,8 @@ def customer_account(request):
             "site": SiteSetting.objects.first(),
             "profile": profile,
             "bookings": bookings,
+            "saved_addresses": saved_addresses,
+            "address_form": address_form,
         },
     )
 
@@ -289,6 +300,48 @@ def customer_order_detail(request, booking_id):
             "tracking": build_tracking_timeline(booking),
         },
     )
+
+
+@customer_login_required
+@require_POST
+def customer_address_add(request):
+    form = CustomerAddressForm(request.POST)
+    if not form.is_valid():
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, error)
+        return redirect("account")
+    remember_customer_address(
+        request.user,
+        label=form.cleaned_data["label"],
+        address=form.cleaned_data["pickup_address"],
+        latitude=form.cleaned_data["pickup_latitude"],
+        longitude=form.cleaned_data["pickup_longitude"],
+        maps_url=form.cleaned_data["pickup_maps_url"],
+    )
+    messages.success(request, "Address saved to your account.")
+    return redirect("account")
+
+
+@customer_login_required
+@require_POST
+def customer_address_delete(request, address_id):
+    deleted, _ = CustomerAddress.objects.filter(pk=address_id, customer=request.user).delete()
+    if deleted:
+        messages.success(request, "Address removed.")
+    else:
+        messages.error(request, "Address not found.")
+    return redirect("account")
+
+
+@customer_login_required
+@require_POST
+def customer_address_default(request, address_id):
+    if set_default_address(request.user, address_id):
+        messages.success(request, "Default pickup address updated.")
+    else:
+        messages.error(request, "Address not found.")
+    return redirect("account")
 
 
 @customer_login_required
@@ -406,6 +459,14 @@ def home(request):
         "slide_seconds": seconds,
         "google_maps_api_key": getattr(settings, "GOOGLE_MAPS_API_KEY", ""),
     }
+    if request.user.is_authenticated and not request.user.is_staff and hasattr(
+        request.user, "customer_profile"
+    ):
+        context["saved_addresses_payload"] = [
+            address_payload(item) for item in addresses_for_user(request.user)
+        ]
+    else:
+        context["saved_addresses_payload"] = []
     return render(request, "index.html", context)
 
 
@@ -579,6 +640,13 @@ def book(request):
             payment_order_id=order_id,
             payment_id=payment_id,
             payment_status="paid",
+        )
+        remember_customer_address(
+            request.user,
+            address=booking.pickup_address,
+            latitude=booking.pickup_latitude,
+            longitude=booking.pickup_longitude,
+            maps_url=booking.pickup_maps_url,
         )
         site = SiteSetting.objects.first()
         email_sent_to = ""

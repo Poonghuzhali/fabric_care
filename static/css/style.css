@@ -2020,6 +2020,88 @@ ul, ol { padding: 0; list-style: none; }
   font-size: 16px;
 }
 
+.saved-addresses-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(38, 34, 33, 0.08);
+}
+
+.section-title--sm {
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  margin-top: 6px;
+}
+
+.saved-addresses-section__lede,
+.saved-addresses-section__empty {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 8px 0 0;
+}
+
+.saved-address-list {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.saved-address-card {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(38, 34, 33, 0.1);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.saved-address-card__body p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.saved-address-card__badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(202, 165, 94, 0.25);
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+.saved-address-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-sm {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.saved-address-form {
+  margin-top: 24px;
+  padding: 20px 18px;
+  border-radius: 14px;
+  background: var(--cream);
+  border: 1px solid rgba(202, 165, 94, 0.22);
+}
+
+.saved-address-form__title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+}
+
 @media (max-width: 860px) {
   .order-card__body { grid-template-columns: 1fr; }
   .order-card__actions { flex-direction: row; flex-wrap: wrap; }

@@ -289,6 +289,38 @@ class CustomerProfile(models.Model):
         return self.full_name or self.user.email
 
 
+class CustomerAddress(models.Model):
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="saved_addresses",
+    )
+    label = models.CharField(max_length=40, blank=True, default="")
+    address = models.TextField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    maps_url = models.URLField(max_length=500, blank=True, default="")
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_default", "-updated_at", "-id"]
+        verbose_name = "Customer address"
+        verbose_name_plural = "Customer addresses"
+
+    def __str__(self):
+        return f"{self.display_label()} — {self.customer_id}"
+
+    def display_label(self):
+        if self.label.strip():
+            return self.label.strip()
+        short = self.address.strip()
+        if len(short) > 36:
+            short = short[:33] + "…"
+        return short or "Saved address"
+
+
 class Booking(models.Model):
     STATUS = [
         ("new", "New"),

@@ -4,7 +4,9 @@
 {% block body_attrs %}data-customer-auth="{% if user.is_authenticated and not user.is_staff %}true{% else %}false{% endif %}" data-login-url="{% url 'login' %}" data-register-url="{% url 'register' %}" data-google-maps-key="{{ google_maps_api_key|default:'' }}" data-payments-enabled="{% if payments_enabled %}true{% else %}false{% endif %}" data-razorpay-key="{{ razorpay_key_id|default:'' }}"{% if site %} data-brand="{{ site.brand_name }}"{% endif %}{% endblock %}
 
 {% block extra_scripts %}
+<script src="{% static 'js/maps-link-parse.js' %}"></script>
 <script src="{% static 'js/book-pickup-map.js' %}"></script>
+<script src="{% static 'js/saved-addresses.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -347,6 +349,7 @@
 </footer>
 
 {{ services_payload|json_script:"services-data" }}
+{{ saved_addresses_payload|json_script:"saved-addresses-data" }}
 
 <div class="modal" id="book-modal" hidden>
   <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="book-title">
@@ -396,6 +399,17 @@
           <input id="book-date" name="preferred_date" type="date" required>
           <small class="error" data-error-for="preferred_date"></small>
         </div>
+      </div>
+      <div class="field" id="book-saved-address-field"{% if not user.is_authenticated or user.is_staff %} hidden{% endif %}>
+        <label for="book-saved-address">Saved pickup address</label>
+        <select id="book-saved-address" name="saved_address_id">
+          <option value="">Use a new address</option>
+          {% for addr in saved_addresses_payload %}
+          <option value="{{ addr.id }}">{{ addr.label }}{% if addr.is_default %} (default){% endif %}</option>
+          {% endfor %}
+        </select>
+        <small class="field-hint">Choose a saved address or enter a new one below. New addresses are saved after you place an order.</small>
+        <small class="error" data-error-for="saved_address_id"></small>
       </div>
       <div class="field">
         <label for="book-address">Pickup address</label>

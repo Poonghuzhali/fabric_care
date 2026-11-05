@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load care_tags %}
+{% load care_tags static %}
 
 {% block title %}My orders · {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}{% endblock %}
 
@@ -88,6 +88,103 @@
       <a class="btn btn-solid" href="/?open_book=1">Book your first service</a>
     </div>
     {% endif %}
+
+    <section class="saved-addresses-section">
+      <header class="saved-addresses-section__head">
+        <div>
+          <p class="eyebrow">Pickup locations</p>
+          <h2 class="section-title section-title--sm">Saved addresses</h2>
+          <p class="saved-addresses-section__lede">Use these when you book a service. New addresses from completed orders are saved automatically.</p>
+        </div>
+      </header>
+
+      {% if saved_addresses %}
+      <ul class="saved-address-list">
+        {% for addr in saved_addresses %}
+        <li class="saved-address-card">
+          <div class="saved-address-card__body">
+            <strong>{{ addr.display_label }}</strong>
+            {% if addr.is_default %}<span class="saved-address-card__badge">Default</span>{% endif %}
+            <p>{{ addr.address }}</p>
+          </div>
+          <div class="saved-address-card__actions">
+            {% if not addr.is_default %}
+            <form method="post" action="{% url 'address_default' addr.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-line btn-sm">Make default</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'address_delete' addr.id %}" onsubmit="return confirm('Remove this saved address?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-line btn-sm">Remove</button>
+            </form>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="saved-addresses-section__empty">No saved addresses yet. Place an order or add one below.</p>
+      {% endif %}
+
+      <form class="saved-address-form" method="post" action="{% url 'address_add' %}">
+        {% csrf_token %}
+        <h3 class="saved-address-form__title">Add a new address</h3>
+        <div class="field">
+          <label for="addr-label">Label (optional)</label>
+          <input id="addr-label" name="label" type="text" maxlength="40" placeholder="Home, Office, etc.">
+        </div>
+        <div class="field">
+          <label for="addr-address">Full pickup address</label>
+          <textarea id="addr-address" name="pickup_address" rows="3" maxlength="400" required placeholder="House / street, area, city, PIN"></textarea>
+        </div>
+        <div class="field">
+          <label for="addr-maps-paste">Google Maps link</label>
+          <input type="url" id="addr-maps-paste" class="pickup-maps-paste" placeholder="Paste a Google Maps link with your pickup pin">
+          <small class="field-hint">Open Google Maps, drop a pin on your doorstep, copy the link, and paste it here so we can locate the address.</small>
+        </div>
+        <input type="hidden" id="addr-lat" name="pickup_latitude" value="">
+        <input type="hidden" id="addr-lng" name="pickup_longitude" value="">
+        <input type="hidden" id="addr-maps-url" name="pickup_maps_url" value="">
+        <button type="submit" class="btn btn-solid">Save address</button>
+      </form>
+    </section>
   </div>
 </main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/maps-link-parse.js' %}"></script>
+<script>
+(function () {
+  var paste = document.getElementById("addr-maps-paste");
+  var lat = document.getElementById("addr-lat");
+  var lng = document.getElementById("addr-lng");
+  var mapsUrl = document.getElementById("addr-maps-url");
+  var form = document.querySelector(".saved-address-form");
+  if (!paste || !form) return;
+
+  function applyParsed(parsed) {
+    if (!parsed) return false;
+    lat.value = parsed.lat.toFixed(6);
+    lng.value = parsed.lng.toFixed(6);
+    mapsUrl.value = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(parsed.lat + "," + parsed.lng);
+    return true;
+  }
+
+  paste.addEventListener("change", function () {
+    if (window.VastraMapsLink) applyParsed(window.VastraMapsLink.parseGoogleMapsUrl(paste.value));
+  });
+
+  form.addEventListener("submit", function (event) {
+    if (!lat.value || !lng.value) {
+      event.preventDefault();
+      if (window.VastraMapsLink && applyParsed(window.VastraMapsLink.parseGoogleMapsUrl(paste.value))) {
+        form.submit();
+        return;
+      }
+      alert("Paste a Google Maps link with your pickup location before saving.");
+    }
+  });
+})();
+</script>
 {% endblock %}

@@ -215,6 +215,10 @@
     if (serviceId) form.elements.service.value = String(serviceId);
     updateBookPaySummary();
     if (window.VastraPickupMap) window.VastraPickupMap.resetMap();
+    if (window.VastraSavedAddresses) {
+      window.VastraSavedAddresses.reset();
+      window.VastraSavedAddresses.applyDefault();
+    }
     openModal("book");
   }
 
