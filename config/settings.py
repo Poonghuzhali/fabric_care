@@ -181,7 +181,12 @@ if EMAIL_USE_SSL:
 if EMAIL_HOST and EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend":
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-if EMAIL_HOST_USER and DEFAULT_FROM_EMAIL == "hello@vastracare.in":
+# Brevo SMTP login (*@smtp-brevo.com) is auth only — keep DEFAULT_FROM_EMAIL as verified sender.
+if (
+    EMAIL_HOST_USER
+    and DEFAULT_FROM_EMAIL == "hello@vastracare.in"
+    and not EMAIL_HOST_USER.lower().endswith("@smtp-brevo.com")
+):
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
     SERVER_EMAIL = EMAIL_HOST_USER
 

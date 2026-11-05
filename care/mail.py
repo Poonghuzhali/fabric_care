@@ -21,10 +21,16 @@ def email_delivery_enabled():
 
 def _smtp_from_email(site=None):
     """
-    Use the SMTP-authenticated address as From (required by Gmail and most providers).
-    Studio contact email goes in Reply-To instead of From.
+    From address must be a verified sender (DEFAULT_FROM_EMAIL).
+    Brevo SMTP login (*@smtp-brevo.com) is used only for authentication, not as From.
     """
-    from_email = (settings.EMAIL_HOST_USER or settings.DEFAULT_FROM_EMAIL or "").strip()
+    from_email = (settings.DEFAULT_FROM_EMAIL or "").strip()
+    smtp_user = (settings.EMAIL_HOST_USER or "").strip()
+    if not from_email or from_email.lower() == smtp_user.lower():
+        if smtp_user.lower().endswith("@smtp-brevo.com"):
+            from_email = (site.email if site and site.email else "hello@vastracare.in").strip()
+        else:
+            from_email = smtp_user or from_email
     reply_to = []
     if site and site.email:
         studio = site.email.strip()

@@ -91,6 +91,15 @@ class LandingPageTests(TestCase):
         self.assertEqual(from_email, "sender@gmail.com")
         self.assertEqual(reply_to, [site.email])
 
+    def test_brevo_smtp_login_is_not_used_as_from_address(self):
+        site = SiteSetting.objects.first()
+        with self.settings(
+            DEFAULT_FROM_EMAIL="orders@example.com",
+            EMAIL_HOST_USER="c1a0e2001@smtp-brevo.com",
+        ):
+            from_email, _reply_to = _smtp_from_email(site)
+        self.assertEqual(from_email, "orders@example.com")
+
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         EMAIL_HOST="smtp.gmail.com",
