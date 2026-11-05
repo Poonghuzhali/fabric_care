@@ -192,10 +192,21 @@ class LandingPageTests(TestCase):
         self.assertEqual(booking.status, "new")
         self.assertEqual(booking.customer_id, user.id)
 
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST="smtp.gmail.com",
+        EMAIL_HOST_USER="sender@gmail.com",
+        EMAIL_HOST_PASSWORD="test-app-password",
+        EMAIL_CONFIGURED=True,
+    )
     def test_customer_can_register_login_and_see_booking(self):
+        import re
+
+        mail.outbox.clear()
         response = self.client.post(
             reverse("register"),
             {
+                "action": "send_otp",
                 "full_name": "Rahul Menon",
                 "email": "rahul@example.com",
                 "phone": "9800012345",
@@ -203,7 +214,19 @@ class LandingPageTests(TestCase):
                 "password2": "StrongPass123!",
             },
         )
-        self.assertRedirects(response, "/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        body = mail.outbox[0].body
+        otp = re.search(r"\b(\d{6})\b", body).group(1)
+        verify = self.client.post(
+            reverse("register"),
+            {
+                "action": "verify_otp",
+                "email": "rahul@example.com",
+                "otp": otp,
+            },
+        )
+        self.assertRedirects(verify, "/")
         account = self.client.get(reverse("account"))
         self.assertContains(account, "Track your orders")
         self.assertContains(account, "Rahul Menon")
@@ -311,6 +334,7 @@ class LandingPageTests(TestCase):
         response = self.client.post(
             reverse("register"),
             {
+                "action": "send_otp",
                 "full_name": "Weak Pass User",
                 "email": "weak@example.com",
                 "phone": "9800012345",

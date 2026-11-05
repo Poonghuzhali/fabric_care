@@ -8,13 +8,44 @@
 <main class="auth-shell">
   <div class="auth-card">
     <p class="eyebrow">Create account</p>
-    <h1 class="auth-title">Register to book</h1>
-    <p class="auth-lede">New customers need an account before requesting a service. You can track every order from your profile.</p>
+    <h1 class="auth-title">{% if otp_sent %}Verify your email{% else %}Register to book{% endif %}</h1>
+    {% if otp_sent %}
+    <p class="auth-lede">Enter the 6-digit code we sent to <strong>{{ pending_email }}</strong>. It expires in 10 minutes.</p>
+    {% else %}
+    <p class="auth-lede">We will email you a one-time code to verify your address before your account is created.</p>
+    {% endif %}
+
+    {% if otp_error %}
+    <p class="auth-error" role="alert">{{ otp_error }}</p>
+    {% endif %}
     {% if form.non_field_errors %}
     <p class="auth-error" role="alert">{{ form.non_field_errors.0 }}</p>
     {% endif %}
+
+    {% if otp_sent %}
     <form method="post" class="auth-form" novalidate>
       {% csrf_token %}
+      <input type="hidden" name="action" value="verify_otp">
+      <input type="hidden" name="next" value="{{ next }}">
+      <input type="hidden" name="email" value="{{ pending_email }}">
+      <div class="field">
+        <label for="id_otp">Verification code</label>
+        <input id="id_otp" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="6-digit OTP">
+      </div>
+      <button class="btn btn-solid btn-block" type="submit">Verify &amp; create account</button>
+    </form>
+    <form method="post" class="auth-form auth-form--inline" style="margin-top:12px">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="resend_otp">
+      <input type="hidden" name="email" value="{{ pending_email }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-line btn-block" type="submit">Resend code</button>
+    </form>
+    <p class="auth-switch"><a href="{% url 'register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Start over with a different email</a></p>
+    {% else %}
+    <form method="post" class="auth-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="send_otp">
       <input type="hidden" name="next" value="{{ next }}">
       <div class="field{% if form.full_name.errors %} has-error{% endif %}">
         <label for="id_full_name">Full name</label>
@@ -41,8 +72,10 @@
         {{ form.password2 }}
         <small class="error" data-error-for="password2">{% if form.password2.errors %}{{ form.password2.errors.0 }}{% endif %}</small>
       </div>
-      <button class="btn btn-solid btn-block" type="submit">Create account</button>
+      <button class="btn btn-solid btn-block" type="submit">Send OTP to email</button>
     </form>
+    {% endif %}
+
     <p class="auth-switch">Already registered? <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Sign in</a></p>
     <a class="auth-back" href="/">← Back to website</a>
   </div>

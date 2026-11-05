@@ -254,6 +254,24 @@ class CtaPoint(models.Model):
         return f"{self.number}. {self.title}"
 
 
+class RegistrationVerification(models.Model):
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=80)
+    phone = models.CharField(max_length=20)
+    password_hash = models.CharField(max_length=128)
+    otp_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Registration verification"
+        verbose_name_plural = "Registration verifications"
+
+    def __str__(self):
+        return f"OTP pending — {self.email}"
+
+
 class CustomerProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,

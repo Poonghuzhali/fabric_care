@@ -100,6 +100,41 @@ def send_booking_confirmation(booking, site=None):
     logger.info("Booking confirmation email sent to %s (booking #%s)", booking.email, booking.pk)
 
 
+def send_registration_otp_email(*, recipient, name, otp, site=None):
+    if not email_delivery_enabled():
+        raise RuntimeError("Email is not configured on this server.")
+    brand = site.brand_name if site and site.brand_name else "Vastra Care"
+    from_email, _reply_to = _smtp_from_email(site)
+    context = {
+        "name": name,
+        "brand": brand,
+        "otp": otp,
+        "minutes": 10,
+    }
+    subject = f"Your {brand} registration code — {otp}"
+    text_body = render_to_string("emails/registration_otp.txt", context)
+    html_body = render_to_string("emails/registration_otp.html", context)
+    if get_brevo_api_key():
+        send_transactional_email(
+            sender_email=from_email,
+            sender_name=brand,
+            to_email=recipient,
+            to_name=name,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+        )
+        return
+    message = EmailMultiAlternatives(
+        subject=subject,
+        body=text_body,
+        from_email=from_email,
+        to=[recipient],
+    )
+    message.attach_alternative(html_body, "text/html")
+    message.send(fail_silently=False)
+
+
 def send_test_email_message(*, recipient, site=None):
     """Send a plain test message using the same Brevo API / SMTP path as booking mail."""
     if not email_delivery_enabled():

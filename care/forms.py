@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 
-from .models import CustomerProfile, Service
+from .models import Service
 
 
 class CustomerRegistrationForm(forms.Form):
@@ -34,6 +34,20 @@ class CustomerRegistrationForm(forms.Form):
     password2 = forms.CharField(
         label="Confirm password",
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+    otp = forms.CharField(
+        label="Email OTP",
+        required=False,
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "one-time-code",
+                "inputmode": "numeric",
+                "pattern": "[0-9]{6}",
+                "placeholder": "6-digit code",
+            }
+        ),
     )
 
     def clean_email(self):
@@ -68,22 +82,11 @@ class CustomerRegistrationForm(forms.Form):
                 self.add_error("password1", " ".join(exc.messages))
         return cleaned
 
-    def save(self):
-        User = get_user_model()
-        email = self.cleaned_data["email"].lower()
-        user = User.objects.create_user(
-            username=email,
-            email=email,
-            password=self.cleaned_data["password1"],
-        )
-        user.is_staff = False
-        user.save(update_fields=["is_staff"])
-        CustomerProfile.objects.create(
-            user=user,
-            full_name=self.cleaned_data["full_name"],
-            phone=self.cleaned_data["phone"],
-        )
-        return user
+    def clean_otp(self):
+        otp = (self.cleaned_data.get("otp") or "").strip()
+        if otp and not otp.isdigit():
+            raise forms.ValidationError("Enter the 6-digit numeric code from your email.")
+        return otp
 
 
 class CustomerLoginForm(AuthenticationForm):

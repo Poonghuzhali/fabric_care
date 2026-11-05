@@ -15,7 +15,13 @@ from django.views.decorators.http import require_POST, require_http_methods
 from .decorators import customer_login_required
 from .forms import BookingForm, ContactForm, CustomerLoginForm, CustomerRegistrationForm
 from .email_timeout import run_with_timeout
-from .mail import email_delivery_enabled, send_booking_confirmation
+from .mail import email_delivery_enabled, send_booking_confirmation, send_registration_otp_email
+from .registration_otp import (
+    OTP_TTL_MINUTES,
+    create_or_refresh_verification,
+    resend_otp_for_email,
+    verify_otp_and_create_user,
+)
 from .payments import (
     create_service_order,
     payments_enabled,
@@ -136,20 +142,112 @@ def customer_login(request):
 def customer_register(request):
     if request.user.is_authenticated and not request.user.is_staff:
         return redirect("home")
+    site = SiteSetting.objects.first()
+    next_url = request.POST.get("next") or request.GET.get("next") or ""
+    otp_sent = request.GET.get("otp_sent") == "1"
+    pending_email = (request.GET.get("email") or request.POST.get("email") or "").strip().lower()
     form = CustomerRegistrationForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        user = form.save()
-        login(request, user, backend="portal.backends.EmailBackend")
-        messages.success(request, "Your account is ready. You can book a service from the home page.")
-        next_url = request.POST.get("next") or request.GET.get("next") or "/"
-        return redirect(next_url)
+    action = (request.POST.get("action") or "").strip()
+
+    otp_error = ""
+
+    if request.method == "POST" and action == "verify_otp":
+        otp_sent = True
+        email = (request.POST.get("email") or "").strip().lower()
+        otp = (request.POST.get("otp") or "").strip()
+        pending_email = email or pending_email
+        if not email:
+            otp_error = "Email is required."
+        elif len(otp) != 6 or not otp.isdigit():
+            otp_error = "Enter the 6-digit code from your email."
+        else:
+            user, error = verify_otp_and_create_user(email=email, code=otp)
+            if error:
+                otp_error = error
+            else:
+                login(request, user, backend="portal.backends.EmailBackend")
+                messages.success(request, "Your email is verified. You can book a service from the home page.")
+                return redirect(next_url or "/")
+    elif request.method == "POST" and action == "resend_otp":
+        otp_sent = True
+        email = (request.POST.get("email") or "").strip().lower()
+        pending_email = email or pending_email
+        if not email:
+            otp_error = "Email is required."
+        elif not email_delivery_enabled():
+            otp_error = "Email is not configured yet. Please try again later."
+        else:
+            code, name, error = resend_otp_for_email(email)
+            if error:
+                otp_error = error
+            else:
+                try:
+                    run_with_timeout(
+                        12,
+                        send_registration_otp_email,
+                        recipient=email,
+                        name=name,
+                        otp=code,
+                        site=site,
+                    )
+                except Exception:
+                    logger.exception("Registration OTP resend failed for %s", email)
+                    otp_error = "We could not resend the OTP email. Please try again shortly."
+                else:
+                    messages.success(request, f"A new verification code was sent to {email}.")
+                    query = f"otp_sent=1&email={quote(email)}"
+                    if next_url:
+                        query += f"&next={quote(next_url)}"
+                    return redirect(f"{reverse('register')}?{query}")
+    elif request.method == "POST" and action == "send_otp":
+        if form.is_valid():
+            if not email_delivery_enabled():
+                form.add_error(None, "Email is not configured yet. Please try again later or contact the studio.")
+            else:
+                code, _pending = create_or_refresh_verification(
+                    email=form.cleaned_data["email"],
+                    full_name=form.cleaned_data["full_name"],
+                    phone=form.cleaned_data["phone"],
+                    raw_password=form.cleaned_data["password1"],
+                )
+                try:
+                    run_with_timeout(
+                        12,
+                        send_registration_otp_email,
+                        recipient=form.cleaned_data["email"],
+                        name=form.cleaned_data["full_name"],
+                        otp=code,
+                        site=site,
+                    )
+                except Exception:
+                    logger.exception("Registration OTP email failed for %s", form.cleaned_data["email"])
+                    form.add_error(
+                        None,
+                        "We could not send the OTP email. Check your address or try again in a minute.",
+                    )
+                else:
+                    query = f"otp_sent=1&email={quote(form.cleaned_data['email'])}"
+                    if next_url:
+                        query += f"&next={quote(next_url)}"
+                    messages.success(
+                        request,
+                        f"We sent a {OTP_TTL_MINUTES}-minute verification code to {form.cleaned_data['email']}.",
+                    )
+                    return redirect(f"{reverse('register')}?{query}")
+
+    if otp_sent and pending_email and not request.POST:
+        form = CustomerRegistrationForm(initial={"email": pending_email})
+
     return render(
         request,
         "account/register.html",
         {
             "form": form,
-            "site": SiteSetting.objects.first(),
-            "next": request.GET.get("next") or "",
+            "site": site,
+            "next": next_url,
+            "otp_sent": otp_sent,
+            "pending_email": pending_email,
+            "otp_error": otp_error,
         },
     )
 
