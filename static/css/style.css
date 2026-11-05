@@ -2045,12 +2045,18 @@ ul, ol { padding: 0; list-style: none; }
 
 .auth-nav .nav-actions {
   width: auto;
-  margin-right: -8px;
+  margin-right: 0;
+  margin-left: auto;
   flex-shrink: 0;
 }
 
 .auth-nav .nav-actions__main {
   flex-wrap: nowrap;
+  transform: translateX(-18px);
+}
+
+.auth-nav .nav-logout {
+  padding-left: 10px;
 }
 
 @media (max-width: 860px) {
@@ -2072,18 +2078,7 @@ ul, ol { padding: 0; list-style: none; }
 
   .auth-nav .nav-actions__main {
     flex-wrap: nowrap;
-    gap: 6px;
-  }
-
-  .auth-nav .nav-actions__main .btn-nav-login,
-  .auth-nav .nav-actions__main .btn-line {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .auth-nav .nav-logout {
-    margin-left: 0;
-    padding-left: 6px;
+    transform: translateX(-22px);
   }
 }
 
