@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load care_tags %}
 
-{% block title %}Order confirmed · {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}{% endblock %}
+{% block title %}Order placed · {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}{% endblock %}
 
 {% block content %}
 <header class="nav auth-nav">
@@ -11,7 +11,8 @@
     </a>
     <div class="nav-actions">
       <div class="nav-actions__main">
-        <a class="btn btn-nav-login" href="{% url 'account' %}">My orders</a>
+        <a class="btn btn-nav-login" href="/">Home</a>
+        <a class="btn btn-line" href="{% url 'account' %}">My orders</a>
       </div>
       <form class="nav-logout" method="post" action="{% url 'customer_logout' %}">
         {% csrf_token %}
@@ -25,29 +26,34 @@
   <div class="wrap booking-confirmation__wrap">
     <div class="booking-confirmation__card">
       <div class="booking-confirmation__icon" aria-hidden="true">✓</div>
-      <p class="eyebrow">Order confirmed</p>
-      <h1 class="section-title">Thank you, {{ booking.name }}</h1>
-      <p class="booking-confirmation__lead">
-        Your payment was successful and your booking is confirmed with
-        <strong>{% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %}</strong>.
-      </p>
+      <p class="eyebrow">Payment successful</p>
+      <h1 class="section-title booking-confirmation__title">Your order is placed</h1>
 
       {% if email_sent_to %}
+      <p class="booking-confirmation__email-hero">
+        Confirmation mail sent to your email ID<br>
+        <strong>{{ email_sent_to }}</strong>
+      </p>
       <p class="booking-confirmation__email-notice">
-        A confirmation email was sent to <strong>{{ email_sent_to }}</strong>. Please check your inbox and spam folder.
+        Please check your inbox and spam folder. This page is your receipt — order reference <strong>#{{ booking.id }}</strong>.
+      </p>
+      {% elif email_failed %}
+      <p class="booking-confirmation__email-notice booking-confirmation__email-notice--muted">
+        Your order is saved (reference <strong>#{{ booking.id }}</strong>). We could not send email right now — the studio will contact you at
+        <strong>{{ booking.email }}</strong>.
       </p>
       {% else %}
-      <p class="booking-confirmation__email-notice booking-confirmation__email-notice--muted">
-        We could not send a confirmation email from the server. Your booking is still saved — the studio will contact you at
-        <strong>{{ booking.email }}</strong>.
+      <p class="booking-confirmation__email-notice">
+        Order reference <strong>#{{ booking.id }}</strong>. Details for <strong>{{ booking.email }}</strong>.
       </p>
       {% endif %}
 
+      <p class="booking-confirmation__lead">
+        Thank you, {{ booking.name }}. {% if site %}{{ site.brand_name }}{% else %}Vastra Care{% endif %} has received your paid booking for
+        <strong>{{ booking.service_name }}</strong> ({{ amount_display }}).
+      </p>
+
       <dl class="booking-confirmation__summary">
-        <div>
-          <dt>Order reference</dt>
-          <dd>#{{ booking.id }}</dd>
-        </div>
         <div>
           <dt>Service</dt>
           <dd>{{ booking.service_name }}</dd>
@@ -83,8 +89,8 @@
       {% endif %}
 
       <div class="booking-confirmation__actions">
-        <a class="btn btn-solid" href="{% url 'account' %}">Track your order</a>
-        <a class="btn btn-line" href="/">Back to home</a>
+        <a class="btn btn-solid" href="/">Back to website</a>
+        <a class="btn btn-line" href="{% url 'account' %}">View my orders</a>
       </div>
     </div>
   </div>

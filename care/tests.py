@@ -148,7 +148,9 @@ class LandingPageTests(TestCase):
         booking = Booking.objects.get(email="mail@example.com")
         self.assertEqual(payload["booking_id"], booking.id)
         self.assertIn(f"/book/confirmation/{booking.id}/", payload["redirect"])
+        self.assertIn("emailed=1", payload["redirect"])
         self.assertEqual(payload["email_sent_to"], "mail@example.com")
+        self.assertTrue(payload.get("order_placed"))
 
     @override_settings(
         PAYMENT_SKIP_VERIFY=True,

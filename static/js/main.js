@@ -271,8 +271,25 @@
     dateInput.min = today.getFullYear() + "-" + month + "-" + day;
   }
 
+  function showBookingPlacedRedirect(modal) {
+    if (!modal) return;
+    const form = modal.querySelector("#book-form");
+    const success = modal.querySelector(".modal-success");
+    if (form) form.hidden = true;
+    if (success) {
+      const title = success.querySelector("h2");
+      const text = success.querySelector("[data-success-text]");
+      if (title) title.textContent = "Order placed";
+      if (text) {
+        text.textContent = "Payment received. Taking you to your confirmation page…";
+      }
+      success.hidden = false;
+    }
+  }
+
   async function completeBooking(form, modal, body) {
     const button = form.querySelector("[type=submit]");
+    showBookingPlacedRedirect(modal);
     const response = await fetch(form.action, {
       method: "POST",
       headers: {
@@ -294,7 +311,7 @@
       return;
     }
     if (payload.redirect) {
-      window.location.assign(payload.redirect);
+      window.location.href = payload.redirect;
       return;
     }
     form.reset();

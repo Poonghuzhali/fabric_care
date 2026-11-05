@@ -1,7 +1,7 @@
 import json
 import logging
 from types import SimpleNamespace
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from django.conf import settings
 from django.contrib import messages
@@ -179,6 +179,9 @@ def booking_confirmation(request, booking_id):
         return redirect("account")
     site = SiteSetting.objects.first()
     email_sent_to = request.session.pop(f"booking_{booking.id}_email_sent", "")
+    if not email_sent_to and request.GET.get("emailed") == "1":
+        email_sent_to = booking.email
+    email_failed = not email_sent_to and request.GET.get("email_failed") == "1"
     return render(
         request,
         "account/booking_confirmation.html",
@@ -186,6 +189,7 @@ def booking_confirmation(request, booking_id):
             "site": site,
             "booking": booking,
             "email_sent_to": email_sent_to,
+            "email_failed": email_failed,
             "amount_display": format_inr(booking.amount_paid),
         },
     )
@@ -264,7 +268,19 @@ def home(request):
     return render(request, "index.html", context)
 
 
-def _form_response(request, form, success, saved_message, *, booking=None, email_sent_to=""):
+def _booking_confirmation_path(booking_id, *, email_sent_to="", email_failed=False):
+    path = reverse("booking_confirmation", kwargs={"booking_id": booking_id})
+    params = {}
+    if email_sent_to:
+        params["emailed"] = "1"
+    elif email_failed:
+        params["email_failed"] = "1"
+    if params:
+        path = f"{path}?{urlencode(params)}"
+    return path
+
+
+def _form_response(request, form, success, saved_message, *, booking=None, email_sent_to="", email_failed=False):
     if _wants_json(request):
         if form is None:
             return JsonResponse({"ok": False, "errors": {"form": "Could not read that request."}}, status=400)
@@ -276,8 +292,13 @@ def _form_response(request, form, success, saved_message, *, booking=None, email
         payload = {"ok": True, "message": saved_message}
         if booking is not None:
             payload["booking_id"] = booking.id
-            payload["redirect"] = reverse("booking_confirmation", kwargs={"booking_id": booking.id})
+            payload["redirect"] = _booking_confirmation_path(
+                booking.id,
+                email_sent_to=email_sent_to,
+                email_failed=email_failed and not email_sent_to,
+            )
             payload["email_sent_to"] = email_sent_to or ""
+            payload["order_placed"] = True
         return JsonResponse(payload)
     if form is not None and form.errors:
         messages.error(request, "Please check the form and try again.")
@@ -286,7 +307,13 @@ def _form_response(request, form, success, saved_message, *, booking=None, email
         if booking is not None:
             if email_sent_to:
                 request.session[f"booking_{booking.id}_email_sent"] = email_sent_to
-            return redirect("booking_confirmation", booking_id=booking.id)
+            return redirect(
+                _booking_confirmation_path(
+                    booking.id,
+                    email_sent_to=email_sent_to,
+                    email_failed=email_failed and not email_sent_to,
+                )
+            )
     return redirect("/")
 
 
@@ -414,33 +441,34 @@ def book(request):
         )
         site = SiteSetting.objects.first()
         email_sent_to = ""
-        success_message = (
-            f"Payment received ({format_inr(service.price)}). Your booking is confirmed."
-        )
+        email_failed = False
+        success_message = f"Your order is placed. Order #{booking.id}."
         if email_delivery_enabled():
             try:
                 send_booking_confirmation(booking, site=site)
                 email_sent_to = booking.email
                 success_message = (
-                    f"Payment received ({format_inr(service.price)}). Your booking is confirmed — "
-                    f"a confirmation email was sent to {booking.email}."
+                    f"Your order is placed. A confirmation email was sent to {booking.email}."
                 )
             except Exception:
+                email_failed = True
                 logger.exception("Booking confirmation email failed for booking #%s", booking.pk)
                 success_message = (
-                    f"Payment received ({format_inr(service.price)}). Your booking is confirmed, "
-                    "but we could not send the confirmation email — please check spam or contact the studio."
+                    "Your order is placed, but we could not send the confirmation email. "
+                    "The studio will contact you soon."
                 )
         else:
+            email_failed = True
             logger.warning(
                 "Booking #%s saved; SMTP not configured (EMAIL_HOST_USER/PASSWORD missing on server).",
                 booking.pk,
             )
             success_message = (
-                f"Payment received ({format_inr(service.price)}). Your booking is confirmed. "
-                "(Confirmation email is not set up on the server yet — the studio will contact you.)"
+                "Your order is placed. Confirmation email is not configured on the server yet — "
+                "the studio will contact you."
             )
         request.session[f"booking_{booking.id}_email_sent"] = email_sent_to
+        request.session.modified = True
         return _form_response(
             request,
             form,
@@ -448,6 +476,7 @@ def book(request):
             success_message,
             booking=booking,
             email_sent_to=email_sent_to,
+            email_failed=email_failed,
         )
     return _form_response(request, form, False, "")
 
