@@ -215,11 +215,16 @@
     if (serviceId) form.elements.service.value = String(serviceId);
     updateBookPaySummary();
     if (window.VastraPickupMap) window.VastraPickupMap.resetMap();
-    if (window.VastraSavedAddresses) {
-      window.VastraSavedAddresses.reset();
-      window.VastraSavedAddresses.applyDefault();
-    }
     openModal("book");
+    setTimeout(function () {
+      if (window.VastraSavedAddresses) {
+        window.VastraSavedAddresses.reset();
+        window.VastraSavedAddresses.applyDefault();
+      }
+      if (window.VastraPickupMap && window.VastraPickupMap.refreshMapSize) {
+        window.VastraPickupMap.refreshMapSize();
+      }
+    }, 120);
   }
 
   document.addEventListener("click", function (event) {

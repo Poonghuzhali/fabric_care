@@ -227,6 +227,7 @@
     ensureMap().then(function () {
       applyPosition(lat, lng, { zoom: 17 });
       if (data.maps_url && nodes.mapsUrl) nodes.mapsUrl.value = data.maps_url;
+      refreshMapSize();
     });
   }
 
@@ -393,23 +394,44 @@
     });
   }
 
+  function refreshMapSize() {
+    const nodes = els();
+    if (!nodes.mapEl) return;
+    function run() {
+      if (googleMap && window.google && window.google.maps) {
+        google.maps.event.trigger(googleMap, "resize");
+        if (googleMarker && googleMarker.getPosition()) {
+          googleMap.setCenter(googleMarker.getPosition());
+        }
+      }
+      if (leafletMap) {
+        leafletMap.invalidateSize(true);
+        if (leafletMarker) {
+          leafletMap.panTo(leafletMarker.getLatLng());
+        }
+      }
+    }
+    run();
+    setTimeout(run, 200);
+    setTimeout(run, 500);
+  }
+
   function onMapReady() {
     bindUi();
+    refreshMapSize();
     if (pendingLocate) {
       pendingLocate = false;
       syncInitialLocation();
     }
-    setTimeout(function () {
-      if (googleMap && window.google) {
-        google.maps.event.trigger(googleMap, "resize");
-      }
-      if (leafletMap) leafletMap.invalidateSize();
-    }, 200);
   }
 
   function initGoogle() {
     const nodes = els();
     if (!nodes.mapEl) return;
+
+    if (nodes.mapEl.querySelector(".pickup-map-fallback")) {
+      nodes.mapEl.innerHTML = "";
+    }
 
     googleMap = new google.maps.Map(nodes.mapEl, {
       center: DEFAULT_CENTER,
@@ -464,9 +486,27 @@
     onMapReady();
   }
 
+  function initGoogleSafe() {
+    try {
+      initGoogle();
+    } catch (error) {
+      googleMap = null;
+      googleMarker = null;
+      geocoder = null;
+      autocomplete = null;
+      initStarted = false;
+      return fallbackLeaflet();
+    }
+    return Promise.resolve();
+  }
+
   function initLeaflet() {
     const nodes = els();
     if (!nodes.mapEl || !window.L) return;
+
+    if (nodes.mapEl.querySelector(".pickup-map-fallback")) {
+      nodes.mapEl.innerHTML = "";
+    }
 
     leafletMap = window.L.map(nodes.mapEl, { scrollWheelZoom: true }).setView(
       [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
@@ -495,17 +535,30 @@
     onMapReady();
   }
 
+  function loadGoogleMapsWithTimeout(key, ms) {
+    return Promise.race([
+      loadGoogleMaps(key),
+      new Promise(function (_, reject) {
+        setTimeout(function () {
+          reject(new Error("Google Maps load timeout"));
+        }, ms);
+      }),
+    ]);
+  }
+
   function ensureMap() {
-    if (initStarted) return Promise.resolve();
     const nodes = els();
     if (!nodes.mapEl) return Promise.resolve();
+    if (initStarted) {
+      return Promise.resolve().then(refreshMapSize);
+    }
     initStarted = true;
 
     const key = apiKey();
     if (key) {
-      return loadGoogleMaps(key)
+      return loadGoogleMapsWithTimeout(key, 15000)
         .then(function () {
-          initGoogle();
+          return initGoogleSafe();
         })
         .catch(function () {
           initStarted = false;
@@ -560,7 +613,9 @@
     bindUi();
     pendingLocate = true;
     ensureMap().then(function () {
+      refreshMapSize();
       setTimeout(function () {
+        refreshMapSize();
         if ((googleMap || leafletMap) && pendingLocate) {
           pendingLocate = false;
           syncInitialLocation();
@@ -589,6 +644,7 @@
   window.VastraPickupMap = {
     ensureMap,
     resetMap,
+    refreshMapSize,
     setCoords,
     applySavedAddress,
     locateUser,
