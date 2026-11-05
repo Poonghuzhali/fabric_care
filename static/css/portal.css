@@ -741,6 +741,7 @@ a { color: inherit; text-decoration: none; }
     width: min(var(--sidebar), 88vw);
     transform: translateX(-105%);
     transition: transform 0.25s ease;
+    z-index: 40;
   }
   .portal-shell.is-mobile-open .portal-sidebar { transform: translateX(0); }
   .portal-topbar {
@@ -750,6 +751,33 @@ a { color: inherit; text-decoration: none; }
   .portal-topbar__menu { display: grid; }
   .portal-profile__meta { display: none; }
   .portal-grid-2 { grid-template-columns: 1fr; }
+  .portal-main {
+    padding: 16px;
+  }
+  .portal-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 640px) {
+  .portal-main {
+    padding: 12px;
+  }
+
+  .portal-kv div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .portal-card {
+    padding: 16px;
+  }
+
+  .portal-login-card {
+    width: min(100%, calc(100vw - 32px));
+    padding: 28px 20px;
+  }
 }
 
 .portal-kv {
