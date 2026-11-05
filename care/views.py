@@ -99,17 +99,17 @@ def _booking_auth_error(request):
     return None
 
 
-def _customer_account_redirect(user):
+def _customer_home_redirect(user):
     if user.is_staff:
         return redirect("portal:dashboard")
-    return redirect("account")
+    return redirect("home")
 
 
 @ensure_csrf_cookie
 @require_http_methods(["GET", "POST"])
 def customer_login(request):
     if request.user.is_authenticated:
-        return _customer_account_redirect(request.user)
+        return _customer_home_redirect(request.user)
     form = CustomerLoginForm(request, data=request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.get_user()
@@ -117,7 +117,7 @@ def customer_login(request):
             form.add_error(None, "Staff accounts must use the service portal sign-in.")
         else:
             login(request, user, backend="portal.backends.EmailBackend")
-            next_url = request.POST.get("next") or request.GET.get("next") or "/account/"
+            next_url = request.POST.get("next") or request.GET.get("next") or "/"
             return redirect(next_url)
     return render(
         request,
@@ -134,13 +134,13 @@ def customer_login(request):
 @require_http_methods(["GET", "POST"])
 def customer_register(request):
     if request.user.is_authenticated and not request.user.is_staff:
-        return redirect("account")
+        return redirect("home")
     form = CustomerRegistrationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.save()
         login(request, user, backend="portal.backends.EmailBackend")
-        messages.success(request, "Your account is ready. You can book a service and track orders here.")
-        next_url = request.POST.get("next") or request.GET.get("next") or "/account/"
+        messages.success(request, "Your account is ready. You can book a service from the home page.")
+        next_url = request.POST.get("next") or request.GET.get("next") or "/"
         return redirect(next_url)
     return render(
         request,

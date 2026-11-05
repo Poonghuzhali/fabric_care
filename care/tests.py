@@ -201,7 +201,7 @@ class LandingPageTests(TestCase):
                 "password2": "StrongPass123!",
             },
         )
-        self.assertRedirects(response, "/account/")
+        self.assertRedirects(response, "/")
         account = self.client.get(reverse("account"))
         self.assertContains(account, "Track your orders")
         self.assertContains(account, "Rahul Menon")
