@@ -93,6 +93,10 @@ class LandingPageTests(TestCase):
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST="smtp.gmail.com",
+        EMAIL_HOST_USER="sender@gmail.com",
+        EMAIL_HOST_PASSWORD="test-app-password",
+        EMAIL_CONFIGURED=True,
         PAYMENT_SKIP_VERIFY=True,
         RAZORPAY_KEY_ID="test_key",
         RAZORPAY_KEY_SECRET="test_secret",

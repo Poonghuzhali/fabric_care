@@ -22,4 +22,16 @@ if on_render and (not key_id or not secret):
 elif on_render:
     mode = "test" if key_id.startswith("rzp_test_") else "live"
     print(f"Razorpay configured on Render ({mode} mode). Online booking payments enabled.")
+
+email_user = os.environ.get("EMAIL_HOST_USER", "").strip()
+email_pass = os.environ.get("EMAIL_HOST_PASSWORD", "").strip() or os.environ.get(
+    "GMAIL_APP_PASSWORD", ""
+).replace(" ", "")
+if on_render and (not email_user or not email_pass):
+    print(
+        "BUILD WARNING: Booking confirmation email will NOT send until you set "
+        "EMAIL_HOST_USER and EMAIL_HOST_PASSWORD (Gmail app password) in Render Environment."
+    )
+elif on_render:
+    print(f"SMTP configured on Render (sender: {email_user}). Booking emails enabled.")
 PY

@@ -155,6 +155,8 @@ EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "").strip()
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").replace(" ", "")
+if not EMAIL_HOST_PASSWORD:
+    EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "").replace(" ", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() in ("1", "true", "yes")
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "false").lower() in ("1", "true", "yes")
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "30"))
@@ -169,6 +171,13 @@ if EMAIL_HOST and EMAIL_BACKEND == "django.core.mail.backends.console.EmailBacke
 if EMAIL_HOST_USER and DEFAULT_FROM_EMAIL == "hello@vastracare.in":
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
     SERVER_EMAIL = EMAIL_HOST_USER
+
+_on_render = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
+if _on_render:
+    if not EMAIL_HOST:
+        EMAIL_HOST = "smtp.gmail.com"
+    if EMAIL_HOST and EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend":
+        EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_CONFIGURED = bool(
     EMAIL_HOST

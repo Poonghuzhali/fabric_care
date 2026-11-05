@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST, require_http_methods
 
 from .decorators import customer_login_required
 from .forms import BookingForm, ContactForm, CustomerLoginForm, CustomerRegistrationForm
-from .mail import send_booking_confirmation
+from .mail import email_delivery_enabled, send_booking_confirmation
 from .payments import (
     create_service_order,
     payments_enabled,
@@ -378,16 +378,29 @@ def book(request):
         )
         site = SiteSetting.objects.first()
         success_message = (
-            f"Payment received ({format_inr(service.price)}). Your booking is confirmed — "
-            f"a confirmation email was sent to {booking.email}."
+            f"Payment received ({format_inr(service.price)}). Your booking is confirmed."
         )
-        try:
-            send_booking_confirmation(booking, site=site)
-        except Exception:
-            logger.exception("Booking confirmation email failed for booking #%s", booking.pk)
+        if email_delivery_enabled():
+            try:
+                send_booking_confirmation(booking, site=site)
+                success_message = (
+                    f"Payment received ({format_inr(service.price)}). Your booking is confirmed — "
+                    f"a confirmation email was sent to {booking.email}."
+                )
+            except Exception:
+                logger.exception("Booking confirmation email failed for booking #%s", booking.pk)
+                success_message = (
+                    f"Payment received ({format_inr(service.price)}). Your booking is confirmed, "
+                    "but we could not send the confirmation email — please check spam or contact the studio."
+                )
+        else:
+            logger.warning(
+                "Booking #%s saved; SMTP not configured (EMAIL_HOST_USER/PASSWORD missing on server).",
+                booking.pk,
+            )
             success_message = (
-                "Your booking request is with us. We will confirm it shortly. "
-                "(We could not send the confirmation email — the studio will contact you by phone or email.)"
+                f"Payment received ({format_inr(service.price)}). Your booking is confirmed. "
+                "(Confirmation email is not set up on the server yet — the studio will contact you.)"
             )
         return _form_response(request, form, True, success_message)
     return _form_response(request, form, False, "")

@@ -9,14 +9,22 @@ from care.templatetags.care_tags import format_inr
 logger = logging.getLogger(__name__)
 
 
+def email_delivery_enabled():
+    """True when mail will leave the app (SMTP or test locmem), not console-only."""
+    backend = (settings.EMAIL_BACKEND or "").lower()
+    if "console" in backend:
+        return False
+    if "locmem" in backend:
+        return True
+    return bool(getattr(settings, "EMAIL_CONFIGURED", False)) and "smtp" in backend
+
+
 def _smtp_from_email(site=None):
     """
     Use the SMTP-authenticated address as From (required by Gmail and most providers).
     Studio contact email goes in Reply-To instead of From.
     """
-    from_email = settings.DEFAULT_FROM_EMAIL
-    if settings.EMAIL_HOST_USER and not from_email:
-        from_email = settings.EMAIL_HOST_USER
+    from_email = (settings.EMAIL_HOST_USER or settings.DEFAULT_FROM_EMAIL or "").strip()
     reply_to = []
     if site and site.email:
         studio = site.email.strip()
@@ -27,6 +35,8 @@ def _smtp_from_email(site=None):
 
 def send_booking_confirmation(booking, site=None):
     """Send order confirmation to the customer's email."""
+    if not email_delivery_enabled():
+        raise RuntimeError("SMTP is not configured; cannot send booking confirmation email.")
     price = ""
     if booking.service_id:
         service = booking.service
