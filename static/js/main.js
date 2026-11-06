@@ -178,12 +178,13 @@
       detail.querySelector("#detail-title").textContent = item.name;
       detail.querySelector("#detail-meta").textContent = item.price + " · " + item.duration;
       detail.querySelector("#detail-copy").textContent = item.description;
+      detail.querySelector("#detail-book").setAttribute("data-service", item.id);
       detail.hidden = false;
       document.body.style.overflow = "hidden";
       return;
     }
 
-    if (event.target.id === "detail-enquire") {
+    if (event.target.id === "detail-book") {
       if (detail) detail.hidden = true;
       document.body.style.overflow = "";
       scrollToContact();

@@ -136,7 +136,7 @@
               <span class="from-label">FROM</span>
               <span class="price">{{ service.price|inr }}</span>
             </div>
-            <a class="btn btn-line" href="#contact" data-book-to-contact>Enquire</a>
+            <button class="btn btn-line" type="button" data-open-modal="book" data-service="{{ service.id }}">Book Now</button>
           </div>
         </article>
         {% endfor %}
@@ -391,7 +391,7 @@
     <h2 id="detail-title"></h2>
     <p class="detail-meta" id="detail-meta"></p>
     <p class="detail-copy" id="detail-copy"></p>
-    <button class="btn btn-solid" type="button" id="detail-enquire">Enquire via contact</button>
+    <button class="btn btn-solid" type="button" id="detail-book">Book this service</button>
   </div>
 </div>
 {% endblock %}

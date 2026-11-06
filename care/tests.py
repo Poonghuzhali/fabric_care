@@ -28,7 +28,7 @@ class LandingPageTests(TestCase):
         self.assertContains(response, "Why Choose Us")
         self.assertContains(response, "Reviews")
         self.assertContains(response, "BOOK TODAY")
-        self.assertContains(response, "Enquire")
+        self.assertContains(response, "Book Now")
         self.assertContains(response, "Simple, Careful, Complete")
         self.assertContains(response, "Loved by Our Customers")
         self.assertContains(response, "Give Your Clothes the Care They Deserve")
