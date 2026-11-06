@@ -66,6 +66,15 @@
   });
   queue();
 
+  const heroNav = document.querySelector(".hero-nav");
+  if (heroNav && heroNav.getAttribute("data-sticky") !== "false") {
+    const syncNav = function () {
+      heroNav.classList.toggle("is-stuck", window.scrollY > 12);
+    };
+    syncNav();
+    window.addEventListener("scroll", syncNav, { passive: true });
+  }
+
   const toggle = document.querySelector(".nav-toggle");
   const links = document.querySelector("#nav-links");
   if (toggle && links) {

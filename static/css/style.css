@@ -141,6 +141,12 @@ ul, ol { padding: 0; list-style: none; }
   font-weight: 600;
 }
 
+#home,
+#about,
+#services,
+#difference,
+#how-it-works,
+#testimonials,
 #contact {
   scroll-margin-top: 88px;
 }
@@ -208,11 +214,41 @@ ul, ol { padding: 0; list-style: none; }
 }
 
 .hero-nav {
-  position: absolute;
-  inset: 0 0 auto;
-  z-index: 20;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
   background: transparent;
   border: 0;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-nav.is-stuck {
+  background: var(--cream);
+  border-bottom: 1px solid rgba(38, 34, 33, 0.06);
+  box-shadow: 0 8px 24px rgba(38, 34, 33, 0.08);
+}
+
+.hero-nav.is-stuck .nav-links a {
+  color: var(--ink);
+  text-shadow: none;
+}
+
+.hero-nav.is-stuck .nav-links a:hover,
+.hero-nav.is-stuck .nav-links a[aria-current="true"] {
+  color: var(--maroon);
+}
+
+.hero-nav.is-stuck .nav-toggle {
+  border-color: rgba(38, 34, 33, 0.12);
+  background: var(--cream);
+}
+
+.hero-nav.is-stuck .nav-toggle__bars,
+.hero-nav.is-stuck .nav-toggle__bars::before,
+.hero-nav.is-stuck .nav-toggle__bars::after {
+  background: var(--ink);
 }
 
 .hero-nav .nav-bar {
@@ -2456,6 +2492,18 @@ ul, ol { padding: 0; list-style: none; }
 
   .nav-links.is-open {
     display: flex;
+  }
+
+  .hero-nav .nav-links a,
+  .hero-nav .nav-links a:hover,
+  .hero-nav .nav-links a[aria-current="true"] {
+    color: var(--ink);
+    text-shadow: none;
+  }
+
+  .hero-nav .nav-links a:hover,
+  .hero-nav .nav-links a[aria-current="true"] {
+    color: var(--maroon);
   }
 
   .nav-bar .nav-actions {

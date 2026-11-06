@@ -6,7 +6,7 @@
 {% block content %}
 <main id="main">
   <section class="hero" id="home" style="--slide-time: {{ slide_seconds }}s" data-interval="{{ slide_seconds }}">
-    <header class="nav hero-nav" id="top">
+    <header class="nav hero-nav" id="top"{% if site and not site.header_sticky %} data-sticky="false"{% endif %}>
       <div class="wrap nav-bar">
         <a class="brand" href="#home" aria-label="{% if site %}{{ site.brand_name }}{% else %}Home{% endif %} home">
           {% if site.logo %}

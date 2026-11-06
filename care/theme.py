@@ -164,11 +164,8 @@ def build_theme_css(site: Any) -> str:
     ]
 
     if not sticky:
-        lines.extend(
-            [
-                ".nav { position: relative !important; }",
-                ".nav.hero-nav { position: relative !important; }",
-            ]
+        lines.append(
+            ".nav.hero-nav { position: absolute !important; top: 0; left: 0; right: 0; }"
         )
 
     hero_sel = ".hero-nav .nav-bar"
