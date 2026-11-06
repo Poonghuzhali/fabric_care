@@ -1,0 +1,24 @@
+{% load care_tags %}
+<section {% section_attrs section_row section_id="difference" base_classes="band band-maroon" %}>
+  <div class="wrap">
+    {% if headings.difference.heading or headings.difference.eyebrow %}
+    <header class="section-head">
+      {% if headings.difference.eyebrow %}<p class="eyebrow">{{ headings.difference.eyebrow }}</p>{% endif %}
+      {% if headings.difference.heading %}<h2 class="section-title">{{ headings.difference.heading }}</h2>{% endif %}
+      <span class="rule rule-diamond"></span>
+    </header>
+    {% endif %}
+    <div class="diff-grid">
+      {% for item in difference_items %}
+      <article class="diff-card">
+        {% if item.image %}
+        <div class="diff-card__img"><img src="{{ item.image.url }}" alt=""></div>
+        {% endif %}
+        <span class="diff-icon">{% icon item.icon 22 %}</span>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.text }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

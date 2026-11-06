@@ -50,17 +50,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "adminsortable2",
     "care.apps.CareConfig",
-    "portal.apps.PortalConfig",
 ]
 
-AUTHENTICATION_BACKENDS = [
-    "portal.backends.EmailBackend",
-    "django.contrib.auth.backends.ModelBackend",
-]
-
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/"
+AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -85,6 +79,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "care.context_processors.site_theme",
             ],
         },
     },
@@ -153,17 +148,6 @@ SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
 CONTACT_ENQUIRY_EMAIL = os.environ.get(
     "CONTACT_ENQUIRY_EMAIL", "poonghuzhali1990@gmail.com"
 ).strip()
-GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "").strip()
-
-RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "").strip()
-RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "").strip()
-# Render demo: use Razorpay test keys when env vars are not set (override via Environment for live keys).
-if os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip() and not (
-    RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET
-):
-    RAZORPAY_KEY_ID = "rzp_test_TwPx3y5C93Wi2O"
-    RAZORPAY_KEY_SECRET = "qlgLhbbMdj6Jp8pdVc71QjDA"
-PAYMENT_SKIP_VERIFY = os.environ.get("PAYMENT_SKIP_VERIFY", "").lower() in ("1", "true", "yes")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "hello@vastracare.in")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 

@@ -1,43 +1,43 @@
 {% extends "base.html" %}
 {% load care_tags static %}
 
-{% block body_attrs %}{% if site %}data-brand="{{ site.brand_name }}"{% endif %}{% endblock %}
+{% block body_attrs %}{% if site %}data-brand="{{ site.brand_name }}" data-hero-auto="{{ hero_auto_advance|yesno:'true,false' }}"{% endif %}{% endblock %}
 
 {% block content %}
-<header class="nav" id="top">
-  <div class="wrap nav-bar">
-    <a class="brand" href="#home" aria-label="{% if site %}{{ site.brand_name }}{% else %}Fabric Care{% endif %} home">
-      {% if site.logo %}
-      <img src="{{ site.logo.url }}" alt="">
-      {% else %}
-      <span class="brand-fallback">VC</span>
-      {% endif %}
-    </a>
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
-      <span class="nav-toggle__bars" aria-hidden="true"></span>
-      <span class="visually-hidden">Menu</span>
-    </button>
-    <nav class="nav-links" id="nav-links" aria-label="Primary">
-      {% for link in nav_links %}
-      <a href="{{ link.url }}">{{ link.label }}</a>
-      {% endfor %}
-    </nav>
-    <div class="nav-actions">
-      <a class="nav-admin-link" href="/admin/">Admin</a>
-      <div class="nav-actions__main">
-        <a class="btn btn-solid nav-book" href="#contact" data-book-to-contact>Book a Service</a>
-      </div>
-    </div>
-  </div>
-</header>
-
 <main id="main">
   <section class="hero" id="home" style="--slide-time: {{ slide_seconds }}s" data-interval="{{ slide_seconds }}">
+    <header class="nav hero-nav" id="top">
+      <div class="wrap nav-bar">
+        <a class="brand" href="#home" aria-label="{% if site %}{{ site.brand_name }}{% else %}Home{% endif %} home">
+          {% if site.logo %}
+          <img src="{{ site.logo.url }}" alt="">
+          {% else %}
+          <span class="brand-fallback">{% if site %}{{ site.brand_fallback_text }}{% else %}VC{% endif %}</span>
+          {% endif %}
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+          <span class="nav-toggle__bars" aria-hidden="true"></span>
+          <span class="visually-hidden">Menu</span>
+        </button>
+        <nav class="nav-links" id="nav-links" aria-label="Primary">
+          {% for link in nav_links %}
+          <a href="{{ link.url }}">{{ link.label }}</a>
+          {% endfor %}
+        </nav>
+        <div class="nav-actions">
+          <div class="nav-actions__main">
+            {% with cta_h=site.nav_contact_url|public_href %}
+            <a class="btn btn-solid nav-contact" href="{% if cta_h %}{{ cta_h }}{% else %}#contact{% endif %}" {% if cta_h == "#contact" %}data-contact-scroll{% endif %}>{% if site %}{{ site.nav_contact_label }}{% else %}Book a Service{% endif %}</a>
+            {% endwith %}
+          </div>
+        </div>
+      </div>
+    </header>
     <div class="hero-stage">
       {% for slide in slides %}
-      <article class="hero-slide{% if forloop.first %} is-active{% endif %}">
+      <article class="hero-slide{% if forloop.first %} is-active{% endif %}" style="--overlay-strength: {{ slide.overlay_opacity|default:40 }}">
         <div class="hero-slide__media">
-          <img src="{{ slide.image.url }}" alt="{{ slide.eyebrow }}">
+          <img src="{{ slide.image.url }}" alt="{{ slide.eyebrow }}" style="object-position: {{ slide.image_position_x|default:'50%' }} {{ slide.image_position_y|default:'50%' }}">
         </div>
         <div class="hero-slide__shade"></div>
         <div class="wrap hero-slide__copy">
@@ -46,18 +46,27 @@
             <h1 class="hero-title">{{ slide.title|linebreaksbr }}</h1>
             <p class="hero-sub">{{ slide.subtitle }}</p>
             <div class="hero-actions">
-              <a class="btn btn-solid" href="{{ slide.primary_url }}" {% if slide.primary_url == "#book" or slide.primary_url == "#contact" %}data-book-to-contact{% endif %}>{{ slide.primary_label }}</a>
-              <a class="btn btn-ghost" href="{{ slide.secondary_url }}">{{ slide.secondary_label }}</a>
+              {% with pu=slide.primary_url|public_href su=slide.secondary_url|public_href %}
+              <a class="btn btn-solid" href="{{ pu }}" {% if pu == "#contact" %}data-contact-scroll{% endif %}>{{ slide.primary_label }}</a>
+              <a class="btn btn-ghost" href="{{ su }}">{{ slide.secondary_label }}</a>
+              {% endwith %}
             </div>
           </div>
         </div>
       </article>
       {% empty %}
-      <article class="hero-slide is-active">
+      <article class="hero-slide is-active" style="--overlay-strength: 62">
         <div class="hero-slide__shade"></div>
         <div class="wrap hero-slide__copy">
           <div class="hero-slide__text">
-            <h1 class="hero-title">Expert Care for<br>Every Fabric</h1>
+            <h1 class="hero-title">{% if site %}{{ site.default_hero_title|linebreaksbr }}{% else %}Expert Care for<br>Every Fabric{% endif %}</h1>
+            {% if site and site.default_hero_subtitle %}
+            <p class="hero-sub">{{ site.default_hero_subtitle }}</p>
+            {% endif %}
+            <div class="hero-actions">
+              <a class="btn btn-solid" href="#contact" data-contact-scroll>Book Now</a>
+              <a class="btn btn-ghost" href="#services">Our Services</a>
+            </div>
           </div>
         </div>
       </article>
@@ -78,207 +87,21 @@
     {% endif %}
   </section>
 
-  <section class="about band-cream" id="about">
-    <div class="wrap about-grid">
-      {% if about %}
-      <figure class="about-frame">
-        {% if about.image %}
-        <img src="{{ about.image.url }}" alt="{{ about.image_alt|default:about.heading }}">
-        {% endif %}
-        <figcaption class="about-badge">
-          <strong>{{ about.badge_value }}</strong>
-          <span>{{ about.badge_label }}</span>
-        </figcaption>
-      </figure>
-      <div class="about-copy">
-        <p class="eyebrow">{{ about.eyebrow }}</p>
-        <h2 class="section-title">{{ about.heading }}</h2>
-        <p class="about-text">{{ about.paragraph_one }}</p>
-        {% if about.paragraph_two %}<p class="about-text">{{ about.paragraph_two }}</p>{% endif %}
-        {% if features %}
-        <ul class="feature-row">
-          {% for feature in features %}
-          <li>
-            <span class="feature-icon">{% icon feature.icon 22 %}</span>
-            <strong>{{ feature.title }}</strong>
-          </li>
-          {% endfor %}
-        </ul>
-        {% endif %}
-      </div>
-      {% endif %}
-    </div>
-  </section>
-
-  <section class="band band-cream" id="services">
-    <div class="wrap">
-      <header class="section-head">
-        <p class="eyebrow">{{ headings.services.eyebrow }}</p>
-        <h2 class="section-title">{{ headings.services.heading }}</h2>
-        {% if headings.services.subheading %}
-        <p class="lede">{{ headings.services.subheading }}</p>
-        {% endif %}
-        <span class="rule rule-diamond" aria-hidden="true"></span>
-      </header>
-      <div class="service-grid">
-        {% for service in services %}
-        <article class="service-card" id="service-{{ service.id }}">
-          <button class="service-card__open" type="button" data-service-detail="{{ service.id }}">
-            <div class="service-card__media">
-              <span class="service-index">{{ forloop.counter|stringformat:"02d" }}</span>
-              <img src="{{ service.image.url }}" alt="{{ service.name }}">
-            </div>
-            <h3>{{ service.name }}</h3>
-          </button>
-          <p>{{ service.summary }}</p>
-          <div class="service-card__foot">
-            <div class="service-price">
-              <span class="from-label">FROM</span>
-              <span class="price">{{ service.price|inr }}</span>
-            </div>
-            <button class="btn btn-line" type="button" data-open-modal="book" data-service="{{ service.id }}">Book Now</button>
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <section class="band band-maroon" id="difference">
-    <div class="wrap">
-      <header class="section-head">
-        <p class="eyebrow">{{ headings.difference.eyebrow }}</p>
-        <h2 class="section-title">{{ headings.difference.heading }}</h2>
-        <span class="rule rule-diamond"></span>
-      </header>
-      <div class="diff-grid">
-        {% for item in difference_items %}
-        <article class="diff-card">
-          <span class="diff-icon">{% icon item.icon 22 %}</span>
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.text }}</p>
-        </article>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <section class="band band-cream" id="how-it-works">
-    <div class="wrap">
-      <header class="section-head">
-        <p class="eyebrow">{{ headings.process.eyebrow }}</p>
-        <h2 class="section-title">{{ headings.process.heading }}</h2>
-        <span class="rule rule-diamond"></span>
-      </header>
-      <ol class="steps">
-        {% for step in process_steps %}
-        <li>
-          <span class="step-badge">{{ step.number|stringformat:"02d" }}</span>
-          <span class="step-icon">{% icon step.icon 26 %}</span>
-          <h3>{{ step.title }}</h3>
-          <p>{{ step.text }}</p>
-        </li>
-        {% endfor %}
-      </ol>
-    </div>
-  </section>
-
-  <section class="band band-cream" id="testimonials">
-    <div class="wrap">
-      <header class="section-head">
-        <p class="eyebrow">{{ headings.testimonials.eyebrow }}</p>
-        <h2 class="section-title">{{ headings.testimonials.heading }}</h2>
-        <span class="rule rule-diamond"></span>
-      </header>
-      <div class="review-grid">
-        {% for note in testimonials %}
-        <article class="review">
-          <div class="stars" aria-label="{{ note.rating }} out of 5 stars">{% stars note.rating %}</div>
-          <blockquote>&ldquo;{{ note.quote }}&rdquo;</blockquote>
-          <div class="review-person">
-            <span class="avatar" aria-hidden="true">{{ note.initial }}</span>
-            <span>
-              <strong>{{ note.name }}</strong>
-              {% if note.city %}<small>{{ note.city }}</small>{% endif %}
-            </span>
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  {% if cta %}
-  <section class="cta-wrap band-cream" id="contact" aria-label="Contact us">
-    <div class="wrap">
-      <div class="cta">
-        <div class="cta-main">
-          <p class="eyebrow">{{ cta.eyebrow }}</p>
-          <h2>{{ cta.heading }}</h2>
-          {% if cta.text %}<p>{{ cta.text }}</p>{% endif %}
-          <div class="cta-actions">
-            <a class="btn btn-gold" href="{{ cta.button_url }}" {% if cta.button_url == "#book" or cta.button_url == "#contact" %}data-book-to-contact{% endif %}>{{ cta.button_label }}</a>
-            {% if cta.link_label %}
-            <a class="btn btn-ghost cta-whatsapp" href="{{ cta.link_url }}" target="_blank" rel="noopener">
-              {% icon "whatsapp" 18 %} {{ cta.link_label }}
-            </a>
-            {% endif %}
-            <button type="button" class="btn btn-ghost cta-email-btn" data-open-modal="contact">
-              {% icon "mail" 18 %} Email us
-            </button>
-          </div>
-        </div>
-        <div class="cta-contact">
-          {% if site.phone %}
-          <div class="cta-contact-item">
-            <span class="cta-contact-icon">{% icon "phone" 18 %}</span>
-            <div>
-              <span class="contact-label">PHONE</span>
-              <a href="tel:{{ site.phone|cut:' ' }}"><strong>{{ site.phone }}</strong></a>
-            </div>
-          </div>
-          {% endif %}
-          {% if site.whatsapp_url %}
-          <div class="cta-contact-item">
-            <span class="cta-contact-icon">{% icon "whatsapp" 18 %}</span>
-            <div>
-              <span class="contact-label">WHATSAPP</span>
-              <a href="{{ site.whatsapp_url }}" target="_blank" rel="noopener"><strong>{{ site.phone }}</strong></a>
-            </div>
-          </div>
-          {% endif %}
-          {% if site.email %}
-          <div class="cta-contact-item">
-            <span class="cta-contact-icon">{% icon "mail" 18 %}</span>
-            <div>
-              <span class="contact-label">EMAIL</span>
-              <a href="mailto:{{ site.email }}"><strong>{{ site.email }}</strong></a>
-            </div>
-          </div>
-          {% endif %}
-          {% if site.address %}
-          <div class="cta-contact-item">
-            <span class="cta-contact-icon">{% icon "map" 18 %}</span>
-            <div>
-              <span class="contact-label">ADDRESS</span>
-              <strong>{{ site.address }}</strong>
-            </div>
-          </div>
-          {% endif %}
-          {% if site.hours %}
-          <div class="cta-contact-item">
-            <span class="cta-contact-icon">{% icon "clock" 18 %}</span>
-            <div>
-              <span class="contact-label">BUSINESS HOURS</span>
-              <strong>{{ site.hours }}</strong>
-            </div>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </section>
-  {% endif %}
+  {% for item in ordered_sections %}
+    {% if item.key == "about" %}
+      {% include "care/includes/section_about.html" with section_row=item.section %}
+    {% elif item.key == "services" %}
+      {% include "care/includes/section_services.html" with section_row=item.section %}
+    {% elif item.key == "difference" %}
+      {% include "care/includes/section_difference.html" with section_row=item.section %}
+    {% elif item.key == "process" %}
+      {% include "care/includes/section_process.html" with section_row=item.section %}
+    {% elif item.key == "testimonials" %}
+      {% include "care/includes/section_testimonials.html" with section_row=item.section %}
+    {% elif item.key == "contact" %}
+      {% include "care/includes/section_contact.html" with section_row=item.section cta_background_extra_style=cta_background_extra_style %}
+    {% endif %}
+  {% endfor %}
 </main>
 
 <footer class="footer" id="footer">
@@ -289,29 +112,29 @@
       {% endif %}
       {% if site.footer_blurb %}<p class="footer-blurb">{{ site.footer_blurb }}</p>{% endif %}
       <div class="socials">
-        {% if site.instagram_url %}
-        <a href="{{ site.instagram_url }}" aria-label="Instagram" target="_blank" rel="noopener">{% icon "spark" 16 %}</a>
+        {% if site.instagram_url|public_href %}
+        <a href="{{ site.instagram_url|public_href }}" aria-label="Instagram" target="_blank" rel="noopener">{% icon "instagram" 16 %}</a>
         {% endif %}
-        {% if site.facebook_url %}
-        <a href="{{ site.facebook_url }}" aria-label="Facebook" target="_blank" rel="noopener">
+        {% if site.facebook_url|public_href %}
+        <a href="{{ site.facebook_url|public_href }}" aria-label="Facebook" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg>
         </a>
         {% endif %}
-        {% if site.youtube_url %}
-        <a href="{{ site.youtube_url }}" aria-label="YouTube" target="_blank" rel="noopener">
+        {% if site.youtube_url|public_href %}
+        <a href="{{ site.youtube_url|public_href }}" aria-label="YouTube" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 00-1.8-1.8C17.9 5 12 5 12 5s-5.9 0-7.8.4A2.5 2.5 0 002.4 7.2 26 26 0 002 12a26 26 0 00.4 4.8 2.5 2.5 0 001.8 1.8C6.1 19 12 19 12 19s5.9 0 7.8-.4a2.5 2.5 0 001.8-1.8A26 26 0 0022 12a26 26 0 00-.4-4.8zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
         </a>
         {% endif %}
-        {% if site.whatsapp_url %}
-        <a href="{{ site.whatsapp_url }}" aria-label="WhatsApp" target="_blank" rel="noopener">{% icon "whatsapp" 16 %}</a>
+        {% if site.whatsapp_url|public_href %}
+        <a href="{{ site.whatsapp_url|public_href }}" aria-label="WhatsApp" target="_blank" rel="noopener">{% icon "whatsapp" 16 %}</a>
         {% endif %}
         {% if site.email %}
-        <button type="button" class="socials__email" data-open-modal="contact" aria-label="Email us">{% icon "mail" 16 %}</button>
+        <button type="button" class="socials__email" data-open-modal="contact" aria-label="{% if site %}{{ site.cta_email_button_label }}{% else %}Email us{% endif %}">{% icon "mail" 16 %}</button>
         {% endif %}
       </div>
     </div>
     <div>
-      <h2>Quick Links</h2>
+      <h2>{% if site %}{{ site.footer_quick_links_heading }}{% else %}Quick Links{% endif %}</h2>
       <ul>
         {% for link in footer_links %}
         <li><a href="{{ link.url }}">{{ link.label }}</a></li>
@@ -319,7 +142,7 @@
       </ul>
     </div>
     <div>
-      <h2>Services</h2>
+      <h2>{% if site %}{{ site.footer_services_heading }}{% else %}Services{% endif %}</h2>
       <ul>
         {% for service in footer_services %}
         <li><a href="#service-{{ service.id }}">{{ service.name }}</a></li>
@@ -327,71 +150,60 @@
       </ul>
     </div>
     <div>
-      <h2>Contact</h2>
+      <h2>{% if site %}{{ site.footer_contact_heading }}{% else %}Contact{% endif %}</h2>
       <ul class="contact-list">
         {% if site.phone %}<li><a href="tel:{{ site.phone|cut:' ' }}">{{ site.phone }}</a></li>{% endif %}
         {% if site.email %}<li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>{% endif %}
+        {% if site.maps_url|public_href %}<li><a href="{{ site.maps_url|public_href }}" target="_blank" rel="noopener">Google Maps</a></li>{% endif %}
         {% if site.address %}<li>{{ site.address }}</li>{% endif %}
         {% if site.hours %}<li>{{ site.hours }}</li>{% endif %}
       </ul>
-      <button class="footer-write" type="button" data-open-modal="contact">Email enquiry</button>
-      <p class="footer-admin-hint"><a href="/admin/">Django admin</a> — edit site content</p>
+      <button class="footer-write" type="button" data-open-modal="contact">{% if site %}{{ site.footer_enquiry_button_label }}{% else %}Email enquiry{% endif %}</button>
     </div>
   </div>
-  <p class="copyright">{% if site.copyright_text %}{{ site.copyright_text }}{% else %}© 2026 Vastra Care. All rights reserved.{% endif %}</p>
+  <p class="copyright">{% if site.copyright_text %}{{ site.copyright_text }}{% else %}© 2023 Vastra Care. All rights reserved.{% endif %}</p>
 </footer>
 
-{{ services_payload|json_script:"services-data" }}
+{{ ui_copy|json_script:"ui-copy-data" }}
 
 <div class="modal" id="contact-modal" hidden>
   <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="contact-title">
     <button class="modal-close" type="button" data-close-modal aria-label="Close">&times;</button>
-    <p class="eyebrow">Contact</p>
-    <h2 id="contact-title">Send us an email</h2>
+    <p class="eyebrow">{% if site %}{{ site.contact_modal_eyebrow }}{% else %}Contact{% endif %}</p>
+    <h2 id="contact-title">{% if site %}{{ site.contact_modal_title }}{% else %}Send us an email{% endif %}</h2>
     <form id="contact-form" method="post" action="{% url 'contact' %}" novalidate>
       {% csrf_token %}
       <p class="form-banner error" data-form-error hidden role="alert"></p>
       <div class="field">
-        <label for="contact-name">Name</label>
+        <label for="contact-name">{% if site %}{{ site.contact_field_label_name }}{% else %}Name{% endif %}</label>
         <input id="contact-name" name="name" type="text" autocomplete="name" required>
         <small class="error" data-error-for="name"></small>
       </div>
       <div class="form-grid">
         <div class="field">
-          <label for="contact-phone">Phone</label>
+          <label for="contact-phone">{% if site %}{{ site.contact_field_label_phone }}{% else %}Phone{% endif %}</label>
           <input id="contact-phone" name="phone" type="tel" autocomplete="tel">
           <small class="error" data-error-for="phone"></small>
         </div>
         <div class="field">
-          <label for="contact-email">Your email</label>
+          <label for="contact-email">{% if site %}{{ site.contact_field_label_email }}{% else %}Your email{% endif %}</label>
           <input id="contact-email" name="email" type="email" autocomplete="email" required>
           <small class="error" data-error-for="email"></small>
         </div>
       </div>
       <div class="field">
-        <label for="contact-message">Message</label>
-        <textarea id="contact-message" name="message" rows="4" maxlength="1200" required minlength="8" placeholder="Tell us what you need"></textarea>
+        <label for="contact-message">{% if site %}{{ site.contact_field_label_message }}{% else %}Message{% endif %}</label>
+        <textarea id="contact-message" name="message" rows="4" maxlength="1200" required minlength="8" placeholder="{% if site %}{{ site.contact_field_placeholder_message }}{% else %}Tell us what you need{% endif %}"></textarea>
         <small class="error" data-error-for="message"></small>
       </div>
-      <button class="btn btn-solid btn-block" type="submit">Send email</button>
+      <button class="btn btn-solid btn-block" type="submit">{% if site %}{{ site.contact_submit_button_label }}{% else %}Send email{% endif %}</button>
     </form>
     <div class="modal-success" hidden>
-      <h2>Message sent</h2>
-      <p data-success-text>Thank you. Your message has reached the studio.</p>
+      <h2>{% if site %}{{ site.contact_success_title }}{% else %}Message sent{% endif %}</h2>
+      <p data-success-text>{% if site and site.contact_success_message %}{{ site.contact_success_message }}{% else %}Thank you. Your message has reached the studio.{% endif %}</p>
       <button class="btn btn-solid" type="button" data-close-modal>Close</button>
     </div>
   </div>
 </div>
 
-<div class="modal" id="detail-modal" hidden>
-  <div class="modal-panel modal-panel--detail" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-    <button class="modal-close" type="button" data-close-modal aria-label="Close">&times;</button>
-    <img class="detail-image" alt="" id="detail-image">
-    <p class="eyebrow" id="detail-kicker">Service</p>
-    <h2 id="detail-title"></h2>
-    <p class="detail-meta" id="detail-meta"></p>
-    <p class="detail-copy" id="detail-copy"></p>
-    <button class="btn btn-solid" type="button" id="detail-book">Book this service</button>
-  </div>
-</div>
 {% endblock %}

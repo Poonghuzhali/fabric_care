@@ -1,0 +1,41 @@
+{% load care_tags %}
+<section {% section_attrs section_row section_id="services" base_classes="band band-cream" %}>
+  <span id="pricing" class="anchor-offset" aria-hidden="true"></span>
+  <div class="wrap">
+    {% if headings.services.heading or headings.services.eyebrow %}
+    <header class="section-head">
+      {% if headings.services.eyebrow %}<p class="eyebrow">{{ headings.services.eyebrow }}</p>{% endif %}
+      {% if headings.services.heading %}<h2 class="section-title">{{ headings.services.heading }}</h2>{% endif %}
+      {% if headings.services.subheading %}
+      <p class="lede">{{ headings.services.subheading }}</p>
+      {% endif %}
+      <span class="rule rule-diamond" aria-hidden="true"></span>
+    </header>
+    {% endif %}
+    <div class="service-grid">
+      {% for service in services %}
+      <article class="service-card" id="service-{{ service.id }}">
+        <div class="service-card__media">
+          <span class="service-index">{{ forloop.counter|stringformat:"02d" }}</span>
+          <img src="{{ service.image.url }}" alt="{{ service.name }}">
+        </div>
+        <h3 class="service-card__title">{{ service.name }}</h3>
+        {% if service.category %}<p class="service-category">{{ service.category }}</p>{% endif %}
+        <p class="service-card__summary">{{ service.summary }}</p>
+        <div class="service-card__foot">
+          {% if service.price_amount %}
+          <p class="service-price-line">{{ service.price_prefix }}{{ service.price_amount }}{% if service.price_suffix %} {{ service.price_suffix }}{% endif %}</p>
+          {% else %}
+          <span class="service-price-line service-price-line--empty" aria-hidden="true"></span>
+          {% endif %}
+          {% with book=service.book_button_url|public_href %}
+          {% if service.book_button_label and book %}
+          <a class="btn btn-line service-card__book" href="{{ book }}">{{ service.book_button_label }}</a>
+          {% endif %}
+          {% endwith %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

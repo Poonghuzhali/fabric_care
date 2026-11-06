@@ -11,7 +11,6 @@ from PIL import Image, ImageFilter
 from care.models import (
     AboutFeature,
     AboutSection,
-    Booking,
     CallToAction,
     ContactMessage,
     CtaPoint,
@@ -40,90 +39,80 @@ SERVICE_ROWS = [
         "Image (Saree Rolling).png",
         "Neat and professional rolling for easy storage and handling.",
         "Sarees are rolled along the length, with the border aligned and the pallu protected, so they store without a hard crease.",
-        "30 min",
-        "60.00",
         True,
+        "150.00",
     ),
     (
         "Towel Ironing & Refreshing",
         "Image (Towel Ironing & Refreshing).png",
         "Fresh, neat and comfortable finishing for towels.",
         "Towels are refreshed, pressed lightly and stacked square, without the flat, scorched finish of a heavy iron.",
-        "25 min",
-        "20.00",
         True,
+        "80.00",
     ),
     (
         "Coat & Delicate Fabric Steam Refresh",
         "Image (Coat & Delicate Fabric Steam Refresh).png",
         "Gentle steam treatment for coats and delicate fabrics.",
         "Coats, blends and delicate tailoring are steamed on the hanger so the shape returns and the surface stays soft.",
-        "50 min",
-        "150.00",
         True,
+        "350.00",
     ),
     (
         "Cotton Veshti Starching & Polishing",
         "Image (Cotton Veshti Starching & Polishing).png",
         "Crisp starching and polished finishing for cotton veshti.",
         "Cotton veshtis are given a light starch and a slow polish so the cloth is crisp and the zari border lies flat.",
-        "40 min",
-        "80.00",
         True,
+        "120.00",
     ),
     (
         "Silk Veshti Polishing",
         "Image (Silk Veshti Polishing).png",
         "Careful polishing to maintain the premium silk appearance.",
         "Silk veshtis are polished at a gentle heat. The body stays supple and the border keeps its shine.",
-        "45 min",
-        "120.00",
         True,
+        "200.00",
     ),
     (
         "Bed Sheet & Cover Ironing",
         "Image (Bed Sheet & Cover Ironing).png",
         "Smooth and neatly finished bed sheets and covers.",
         "Bed sheets, duvet covers and pillowcases are ironed flat and folded to a neat stack.",
-        "30 min",
-        "40.00",
         True,
+        "180.00",
     ),
     (
         "Saree Pre-Pleating",
         "Image (Saree Pre-Pleating).png",
         "Ready-to-wear pre-pleating for convenient styling.",
         "Pleats are measured, pressed and secured for the occasion, so the saree can be worn without pinning at the last minute.",
-        "90 min",
-        "250.00",
         False,
+        "450.00",
     ),
     (
         "Saree Polishing",
         "Image (Saree Polishing).png",
         "Professional polishing to enhance the saree's finish and appearance.",
         "Silk and rich cotton sarees are polished by hand until the body is even and the border catches the light again.",
-        "60 min",
-        "150.00",
         False,
+        "280.00",
     ),
     (
         "Cotton Saree Starching & Polishing",
         "Image (Cotton Saree Starching & Polishing).png",
         "Crisp starching with a clean, polished finish.",
         "Cotton sarees receive just enough starch to hold a fall, then a polish that keeps the cloth breathable.",
-        "50 min",
-        "120.00",
         False,
+        "220.00",
     ),
     (
         "Saree Folding",
         "Image (Saree Folding).png",
         "Neat and careful folding for organized storage.",
         "Each saree is folded to a clean square with the border visible, ready for the cupboard or a gift box.",
-        "20 min",
-        "40.00",
         False,
+        "100.00",
     ),
 ]
 
@@ -230,7 +219,7 @@ class Command(BaseCommand):
             slide.save(update_fields=["image"])
 
         for index, row in enumerate(SERVICE_ROWS, start=1):
-            name, filename, _summary, _description, _duration, _price, _footer = row
+            name, filename, _summary, _description, _footer, _price = row
             slug = name.lower().replace(" & ", "-").replace(" ", "-")
             service = Service.objects.filter(name=name).first() or Service.objects.filter(order=index).first()
             if not service:
@@ -239,7 +228,6 @@ class Command(BaseCommand):
             service.save(update_fields=["image"])
 
     def _clear(self):
-        Booking.objects.all().delete()
         ContactMessage.objects.all().delete()
         HeroSlide.objects.all().delete()
         AboutFeature.objects.all().delete()
@@ -263,6 +251,7 @@ class Command(BaseCommand):
             brand_name="Vastra Care",
             tagline="Premium saree and fabric care",
             logo=_file(_logo_path(), "brand/logo.png"),
+            brand_fallback_text="VC",
             phone="+91 9790263322",
             email="hello@vastracare.in",
             enquiry_inbox_email="poonghuzhali1990@gmail.com",
@@ -276,17 +265,46 @@ class Command(BaseCommand):
                 "Premium saree and fabric care — rolling, pleating, polishing, starching and steaming, "
                 "done by hand with precision."
             ),
-            copyright_text="© 2026 Vastra Care. All rights reserved.",
+            copyright_text="© 2023 Vastra Care. All rights reserved.",
             slide_seconds=5,
+            page_title_suffix="— Expert Care for Every Fabric",
+            meta_description=HERO_SUBTITLE,
+            default_hero_title=HERO_TITLE,
+            default_hero_subtitle=HERO_SUBTITLE,
+            nav_contact_label="Book a Service",
+            service_read_more_label="Read more",
+            footer_quick_links_heading="Quick Links",
+            footer_services_heading="Services",
+            footer_contact_heading="Contact",
+            footer_enquiry_button_label="Email enquiry",
+            contact_label_phone="PHONE",
+            contact_label_whatsapp="WHATSAPP",
+            contact_label_email="EMAIL",
+            contact_label_address="ADDRESS",
+            contact_label_business_hours="BUSINESS HOURS",
+            cta_email_button_label="Email us",
+            contact_modal_eyebrow="Contact",
+            contact_modal_title="Send us an email",
+            contact_field_label_name="Name",
+            contact_field_label_phone="Phone",
+            contact_field_label_email="Your email",
+            contact_field_label_message="Message",
+            contact_field_placeholder_message="Tell us what you need",
+            contact_submit_button_label="Send email",
+            contact_success_title="Message sent",
+            contact_success_message="Thank you. Your message has reached the studio.",
+            contact_form_generic_error="Something went wrong. Please try again.",
+            contact_form_network_error="Something went wrong. Please try again.",
         )
 
         links = [
             ("Home", "#home", 1),
             ("About Us", "#about", 2),
             ("Services", "#services", 3),
-            ("Why Choose Us", "#difference", 4),
-            ("Reviews", "#testimonials", 5),
-            ("Contact", "#contact", 6),
+            ("Pricing", "#pricing", 4),
+            ("How it Works", "#how-it-works", 5),
+            ("Reviews", "#testimonials", 6),
+            ("Contact", "#contact", 7),
         ]
         for label, url, order in links:
             NavLink.objects.create(label=label, url=url, order=order)
@@ -303,9 +321,9 @@ class Command(BaseCommand):
                 title=HERO_TITLE,
                 subtitle=HERO_SUBTITLE,
                 image=image,
-                primary_label="Book a Service",
+                primary_label="Book Now",
                 primary_url="#contact",
-                secondary_label="View Services",
+                secondary_label="Our Services",
                 secondary_url="#services",
                 order=order,
             )
@@ -328,9 +346,9 @@ class Command(BaseCommand):
             badge_label="YEARS OF CARE",
         )
         features = [
-            ("medal", "Quality Finishing", "", 1),
-            ("feather", "Gentle Fabric Care", "", 2),
-            ("hand", "Professional Handling", "", 3),
+            ("shield", "Gentle Cleaning", "", 1),
+            ("hand", "Expert Handling", "", 2),
+            ("medal", "Preservation", "", 3),
         ]
         for icon, title, text, order in features:
             AboutFeature.objects.create(icon=icon, title=title, text=text, order=order)
@@ -339,7 +357,7 @@ class Command(BaseCommand):
             key="services",
             eyebrow="WHAT WE DO",
             heading="Our Fabric Care Services",
-            subheading="Specialized care and finishing for your everyday wear and traditional fabrics.",
+            subheading="Specialized cleaning and finishing for delicate garments, sarees, lehengas and everyday fabrics.",
         )
         SectionIntro.objects.create(
             key="difference",
@@ -361,24 +379,25 @@ class Command(BaseCommand):
         )
 
         for index, row in enumerate(SERVICE_ROWS, start=1):
-            name, filename, summary, description, duration, price, footer = row
+            name, filename, summary, description, footer, price_str = row
             slug = name.lower().replace(" & ", "-").replace(" ", "-")
             Service.objects.create(
                 name=name,
                 summary=summary,
                 description=description,
                 image=_file(_source(filename), f"services/{slug}.png"),
-                duration=duration,
-                price=price,
                 order=index,
                 show_in_footer=footer,
+                price_amount=price_str,
+                book_button_label="Order Now",
+                book_button_url="#contact",
             )
 
         differences = [
-            ("shield", "Professional Fabric Care", "Every fabric receives appropriate care.", 1),
-            ("flower", "Specialized Saree Care", "Dedicated finishing for sarees and traditional wear.", 2),
-            ("feather", "Delicate Fabric Handling", "Careful treatment for premium and delicate materials.", 3),
-            ("medal", "Neat Premium Finish", "Consistent, clean and polished results.", 4),
+            ("shield", "Professional Fabric Care", "Every fabric receives care matched to its weave and finish.", 1),
+            ("steam", "Specialized Ironing", "Controlled heat and steam for crisp, even results.", 2),
+            ("feather", "Delicate Fiber Analysis", "We assess drape, zari and fiber before treatment.", 3),
+            ("flower", "Eco-friendly Care", "Thoughtful products and methods where it matters.", 4),
         ]
         for icon, title, text, order in differences:
             DifferenceItem.objects.create(icon=icon, title=title, text=text, order=order)
@@ -418,14 +437,14 @@ class Command(BaseCommand):
             Testimonial.objects.create(name=name, city=city, quote=quote, rating=5, order=index)
 
         CallToAction.objects.create(
-            eyebrow="BOOK TODAY",
+            eyebrow="GET IN TOUCH",
             heading="Give Your Clothes the Care They Deserve",
             text=(
                 "From everyday ironing to delicate saree and traditional wear care, "
                 "we make every piece look its best."
             ),
-            button_label="Book a Service",
-            button_url="#contact",
-            link_label="WhatsApp Us",
+            button_label="Call us",
+            button_url="tel:+919790263322",
+            link_label="WhatsApp",
             link_url="https://wa.me/919790263322",
         )

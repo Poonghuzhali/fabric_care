@@ -28,4 +28,4 @@ class Command(BaseCommand):
                 )
             )
         else:
-            self.stdout.write(self.style.SUCCESS("Email ready for booking confirmations."))
+            self.stdout.write(self.style.SUCCESS("Email ready for contact form notifications."))

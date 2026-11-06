@@ -1,0 +1,92 @@
+{% load care_tags %}
+{% if cta %}
+<section {% section_attrs section_row section_id="contact" base_classes="cta-wrap band-cream" bg_override=cta.background_color extra_style=cta_background_extra_style %} aria-label="Contact us">
+  <div class="wrap">
+    <div class="cta">
+      <div class="cta-main">
+        <p class="eyebrow">{{ cta.eyebrow }}</p>
+        <h2>{{ cta.heading }}</h2>
+        {% if cta.text %}<p>{{ cta.text }}</p>{% endif %}
+        <div class="cta-actions">
+          {% with bu=cta.button_url|public_href %}
+          {% if bu %}
+          <a class="btn btn-gold" href="{% if bu == 'tel:' and site.phone %}tel:{{ site.phone|cut:' ' }}{% else %}{{ bu }}{% endif %}" {% if bu == "#contact" %}data-contact-scroll{% endif %}>{{ cta.button_label }}</a>
+          {% endif %}
+          {% endwith %}
+          {% with cta_wh=cta.link_url|public_href %}
+          {% if cta.link_label and cta_wh %}
+          <a class="btn btn-ghost cta-whatsapp" href="{{ cta_wh }}" target="_blank" rel="noopener">
+            {% icon "whatsapp" 18 %} {{ cta.link_label }}
+          </a>
+          {% endif %}
+          {% endwith %}
+          {% with su=cta.secondary_button_url|public_href %}
+          {% if cta.secondary_button_label and su %}
+          <a class="btn btn-ghost" href="{{ su }}" {% if su == "#contact" %}data-contact-scroll{% endif %}>{{ cta.secondary_button_label }}</a>
+          {% endif %}
+          {% endwith %}
+          <button type="button" class="btn btn-ghost cta-email-btn" data-open-modal="contact">
+            {% icon "mail" 18 %} {% if site %}{{ site.cta_email_button_label }}{% else %}Email us{% endif %}
+          </button>
+        </div>
+      </div>
+      <div class="cta-contact">
+        {% if site.phone %}
+        <div class="cta-contact-item">
+          <span class="cta-contact-icon">{% icon "phone" 18 %}</span>
+          <div>
+            <span class="contact-label">{% if site %}{{ site.contact_label_phone }}{% else %}PHONE{% endif %}</span>
+            <a href="tel:{{ site.phone|cut:' ' }}"><strong>{{ site.phone }}</strong></a>
+          </div>
+        </div>
+        {% endif %}
+        {% if site.whatsapp_url|public_href %}
+        <div class="cta-contact-item">
+          <span class="cta-contact-icon">{% icon "whatsapp" 18 %}</span>
+          <div>
+            <span class="contact-label">{% if site %}{{ site.contact_label_whatsapp }}{% else %}WHATSAPP{% endif %}</span>
+            <a href="{{ site.whatsapp_url|public_href }}" target="_blank" rel="noopener"><strong>{{ site.phone }}</strong></a>
+          </div>
+        </div>
+        {% endif %}
+        {% if site.email %}
+        <div class="cta-contact-item">
+          <span class="cta-contact-icon">{% icon "mail" 18 %}</span>
+          <div>
+            <span class="contact-label">{% if site %}{{ site.contact_label_email }}{% else %}EMAIL{% endif %}</span>
+            <a href="mailto:{{ site.email }}"><strong>{{ site.email }}</strong></a>
+          </div>
+        </div>
+        {% endif %}
+        {% if site.maps_url|public_href %}
+        <div class="cta-contact-item">
+          <span class="cta-contact-icon">{% icon "map" 18 %}</span>
+          <div>
+            <span class="contact-label">Location</span>
+            <a href="{{ site.maps_url|public_href }}" target="_blank" rel="noopener"><strong>Open in Google Maps</strong></a>
+          </div>
+        </div>
+        {% endif %}
+        {% if site.address %}
+        <div class="cta-contact-item">
+          <span class="cta-contact-icon">{% icon "map" 18 %}</span>
+          <div>
+            <span class="contact-label">{% if site %}{{ site.contact_label_address }}{% else %}ADDRESS{% endif %}</span>
+            <strong>{{ site.address }}</strong>
+          </div>
+        </div>
+        {% endif %}
+        {% if site.hours %}
+        <div class="cta-contact-item">
+          <span class="cta-contact-icon">{% icon "clock" 18 %}</span>
+          <div>
+            <span class="contact-label">{% if site %}{{ site.contact_label_business_hours }}{% else %}BUSINESS HOURS{% endif %}</span>
+            <strong>{{ site.hours }}</strong>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}

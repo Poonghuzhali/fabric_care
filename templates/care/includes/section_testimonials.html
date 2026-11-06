@@ -1,0 +1,32 @@
+{% load care_tags %}
+<section {% section_attrs section_row section_id="testimonials" base_classes="band band-cream" %}>
+  <div class="wrap">
+    {% if headings.testimonials.heading or headings.testimonials.eyebrow %}
+    <header class="section-head">
+      {% if headings.testimonials.eyebrow %}<p class="eyebrow">{{ headings.testimonials.eyebrow }}</p>{% endif %}
+      {% if headings.testimonials.heading %}<h2 class="section-title">{{ headings.testimonials.heading }}</h2>{% endif %}
+      <span class="rule rule-diamond"></span>
+    </header>
+    {% endif %}
+    <div class="review-grid">
+      {% for note in testimonials %}
+      <article class="review">
+        <div class="stars" aria-label="{{ note.rating }} out of 5 stars">{% stars note.rating %}</div>
+        <blockquote>&ldquo;{{ note.quote }}&rdquo;</blockquote>
+        <div class="review-person">
+          {% if note.photo %}
+          <span class="avatar avatar--photo" aria-hidden="true"><img src="{{ note.photo.url }}" alt=""></span>
+          {% else %}
+          <span class="avatar" aria-hidden="true">{{ note.initial }}</span>
+          {% endif %}
+          <span>
+            <strong>{{ note.name }}</strong>
+            {% if note.designation %}<small class="review-designation">{{ note.designation }}</small>{% endif %}
+            {% if note.city %}<small>{{ note.city }}</small>{% endif %}
+          </span>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

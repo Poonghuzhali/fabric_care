@@ -1,7 +1,10 @@
 from decimal import Decimal
 
 from django import template
-from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe as django_mark_safe
+
+from care.public_site import sanitize_public_href
+from care.theme import section_wrapper_attrs
 
 register = template.Library()
 
@@ -17,22 +20,22 @@ ICONS = {
     "star": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.6l1.9 4.7 5.1.5-3.9 3.3 1.2 5-4.3-2.6L7.7 17l1.2-5L5 8.8l5.1-.5L12 3.6z"/></svg>',
     "medal": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="4"/><path d="M8.5 13.5L7 21l5-2.5L17 21l-1.5-7.5"/></svg>',
     "feather": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4s-7 1-11 5-5 11-5 11 7-1 11-5 5-11 5-11z"/><path d="M9 15l-2 2"/></svg>',
-    "flower": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M17.7 6.3l-1.4 1.4M7.7 16.3l-1.4 1.4"/></svg>',
+    "flower": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M17.7 6.3l-1.4 1.4M7.7 16.3l-1.4 1.4"/></svg>',
     "phone": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6.5 4h3l1.5 4-2 1.2a11 11 0 005.8 5.8L18 13l4 1.5v3A2 2 0 0119.8 20 16 16 0 014 6.2 2 2 0 016.5 4z"/></svg>',
     "map": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M9 19l-6-3V6l6 3 6-3 6 3v10l-6 3-6-3z"/><path d="M9 6v13M15 3v13"/></svg>',
     "whatsapp": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4a8 8 0 00-6.9 12l-.8 3.2 3.3-.8A8 8 0 1012 4zm4.4 11.3c-.2.5-1 .9-1.4 1-.4.1-.8.2-2.7-.6-2.3-.9-3.7-3.2-3.8-3.4-.1-.2-1-1.3-1-2.5s.6-1.8.9-2c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .5.4.2.5.7 1.7.7 1.8.1.1.1.3 0 .4-.1.2-.2.3-.3.5l-.2.3c-.1.1-.2.2-.1.4.1.2.6 1 1.3 1.6.9.8 1.6 1 1.8 1.1.2.1.3.1.5-.1.2-.2.6-.7.8-.9.2-.2.3-.2.5-.1.2.1 1.4.7 1.6.8.2.1.4.2.4.3.1.2 0 .8-.2 1.3z"/></svg>',
-    "clipboard": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="7" y="4" width="10" height="4" rx="1"/><path d="M9 8h6v12H9z"/></svg>',
-    "wand": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 20l8-8"/><path d="M13 7l4-4 3 3-4 4"/><path d="M15 5l2 2"/></svg>',
+    "clipboard": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="4" width="10" height="4" rx="1"/><path d="M9 8h6v12H9z"/></svg>',
+    "wand": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l8-8"/><path d="M13 7l4-4 3 3-4 4"/><path d="M15 5l2 2"/></svg>',
     "check": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9 12l2 2 4-4"/></svg>',
-    "logout": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
     "mail": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+    "instagram": '<svg width="__S__" height="__S__" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>',
 }
 
 
 @register.simple_tag
 def icon(name, size=24):
     svg = ICONS.get(name, ICONS["spark"])
-    return mark_safe(svg.replace("__S__", str(int(size))))
+    return django_mark_safe(svg.replace("__S__", str(int(size))))
 
 
 @register.simple_tag
@@ -46,32 +49,50 @@ def stars(count):
     for index in range(5):
         state = "is-on" if index < filled else ""
         parts.append(f'<span class="star {state}">{star}</span>')
-    return mark_safe("".join(parts))
+    return django_mark_safe("".join(parts))
 
 
-def format_inr(value):
-    amount = Decimal(value)
-    if amount == amount.to_integral():
-        return f"₹{int(amount)}"
-    return f"₹{amount:.2f}"
+@register.simple_tag
+def section_attrs(
+    section_row,
+    section_id="",
+    base_classes="",
+    bg_override="",
+    text_override="",
+    extra_style="",
+):
+    """Attributes for a landing <section>: id, classes, theme/section backgrounds."""
+    attrs: list[str] = []
+    sid = (section_id or "").strip()
+    if sid:
+        attrs.append(f'id="{sid}"')
+    inner = section_wrapper_attrs(
+        section_row,
+        bg_override=bg_override or "",
+        text_override=text_override or "",
+        base_classes=base_classes or "",
+        extra_style=extra_style or "",
+    )
+    # inner is like class="..." style="..." or empty
+    s = (str(inner) or "").strip()
+    if s:
+        attrs.append(s)
+    if not attrs:
+        return django_mark_safe("")
+    return django_mark_safe(" ".join(attrs))
+
+
+@register.filter
+def public_href(url):
+    """Safe href for public pages (drops Django admin and unsafe URLs)."""
+    return sanitize_public_href(url)
 
 
 @register.filter
 def inr(value):
     if value is None or value == "":
         return ""
-    return format_inr(value)
-
-
-@register.filter
-def order_headline(booking):
-    from care.order_tracking import order_headline as _headline
-
-    return _headline(booking)
-
-
-@register.filter
-def can_cancel_order(booking):
-    from care.order_tracking import customer_can_cancel
-
-    return customer_can_cancel(booking)
+    amount = Decimal(value)
+    if amount == amount.to_integral():
+        return f"₹{int(amount)}"
+    return f"₹{amount:.2f}"

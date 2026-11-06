@@ -1,4 +1,6 @@
 (function () {
+  const body = document.body;
+  const heroAuto = body && body.getAttribute("data-hero-auto") !== "false";
   const hero = document.querySelector(".hero");
   const slides = Array.from(document.querySelectorAll(".hero-slide"));
   const dots = Array.from(document.querySelectorAll(".hero-dot"));
@@ -35,7 +37,7 @@
   }
 
   function queue() {
-    if (slides.length < 2) return;
+    if (!heroAuto || slides.length < 2) return;
     clearInterval(timer);
     timer = setInterval(function () {
       show(index + 1);
@@ -79,7 +81,7 @@
     });
   }
 
-  const sections = ["about", "services", "difference", "testimonials", "contact"]
+  const sections = ["about", "services", "pricing", "difference", "how-it-works", "testimonials", "contact"]
     .map(function (id) {
       return document.getElementById(id);
     })
@@ -104,15 +106,10 @@
     });
   }
 
-  const servicesNode = document.getElementById("services-data");
-  const services = servicesNode ? JSON.parse(servicesNode.textContent) : [];
-  const detail = document.getElementById("detail-modal");
-
-  function serviceById(id) {
-    return services.find(function (item) {
-      return String(item.id) === String(id);
-    });
-  }
+  const uiCopyNode = document.getElementById("ui-copy-data");
+  const uiCopy = uiCopyNode ? JSON.parse(uiCopyNode.textContent) : {};
+  const contactGenericError = uiCopy.contactFormGenericError || "Something went wrong. Please try again.";
+  const contactNetworkError = uiCopy.contactFormNetworkError || contactGenericError;
 
   function openModal(id) {
     const modal = document.getElementById(id + "-modal");
@@ -145,17 +142,9 @@
     }
   }
 
-  function stripLegacyBookParam() {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has("open_book")) return;
-    params.delete("open_book");
-    const query = params.toString();
-    history.replaceState(null, "", window.location.pathname + (query ? "?" + query : ""));
-  }
-
   document.addEventListener("click", function (event) {
-    const bookTarget = event.target.closest("[data-open-modal='book'], [data-book-to-contact]");
-    if (bookTarget) {
+    const contactScroll = event.target.closest("[data-contact-scroll]");
+    if (contactScroll) {
       event.preventDefault();
       scrollToContact();
       return;
@@ -165,29 +154,7 @@
     if (opener) {
       event.preventDefault();
       const which = opener.getAttribute("data-open-modal");
-      if (which && which !== "book") openModal(which);
-      return;
-    }
-
-    const detailButton = event.target.closest("[data-service-detail]");
-    if (detailButton && detail) {
-      const item = serviceById(detailButton.getAttribute("data-service-detail"));
-      if (!item) return;
-      detail.querySelector("#detail-image").src = item.image;
-      detail.querySelector("#detail-image").alt = item.name;
-      detail.querySelector("#detail-title").textContent = item.name;
-      detail.querySelector("#detail-meta").textContent = item.price + " · " + item.duration;
-      detail.querySelector("#detail-copy").textContent = item.description;
-      detail.querySelector("#detail-book").setAttribute("data-service", item.id);
-      detail.hidden = false;
-      document.body.style.overflow = "hidden";
-      return;
-    }
-
-    if (event.target.id === "detail-book") {
-      if (detail) detail.hidden = true;
-      document.body.style.overflow = "";
-      scrollToContact();
+      if (which) openModal(which);
       return;
     }
 
@@ -229,7 +196,7 @@
         payload = JSON.parse(await response.text());
       } catch (parseError) {
         if (window.VastraForms) {
-          window.VastraForms.showFormError(form, "Something went wrong. Please try again.");
+          window.VastraForms.showFormError(form, contactGenericError);
         }
         button.disabled = false;
         return;
@@ -250,7 +217,7 @@
       if (success) success.hidden = false;
     } catch (error) {
       if (window.VastraForms) {
-        window.VastraForms.showFormError(form, "Something went wrong. Please try again.");
+        window.VastraForms.showFormError(form, contactNetworkError);
       }
     } finally {
       button.disabled = false;
@@ -264,13 +231,4 @@
       submitContactForm(contactForm, contactForm.closest(".modal"));
     });
   }
-
-  (function handleOpenBookDeepLink() {
-    const params = new URLSearchParams(window.location.search);
-    const openBook = params.get("open_book") === "1";
-    stripLegacyBookParam();
-    if (openBook) {
-      setTimeout(scrollToContact, 80);
-    }
-  })();
 })();

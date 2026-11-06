@@ -1,0 +1,22 @@
+{% load care_tags %}
+<section {% section_attrs section_row section_id="how-it-works" base_classes="band band-cream" %}>
+  <div class="wrap">
+    {% if headings.process.heading or headings.process.eyebrow %}
+    <header class="section-head">
+      {% if headings.process.eyebrow %}<p class="eyebrow">{{ headings.process.eyebrow }}</p>{% endif %}
+      {% if headings.process.heading %}<h2 class="section-title">{{ headings.process.heading }}</h2>{% endif %}
+      <span class="rule rule-diamond"></span>
+    </header>
+    {% endif %}
+    <ol class="steps">
+      {% for step in process_steps %}
+      <li>
+        <span class="step-badge">{{ step.number|stringformat:"02d" }}</span>
+        <span class="step-icon">{% icon step.icon 26 %}</span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.text }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>

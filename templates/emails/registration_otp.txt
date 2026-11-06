@@ -1,7 +1,0 @@
-Hello {{ name }},
-
-Your verification code to register with {{ brand }} is:
-
-{{ otp }}
-
-This code expires in {{ minutes }} minutes. If you did not request this, you can ignore this email.

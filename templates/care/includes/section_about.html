@@ -1,0 +1,41 @@
+{% load care_tags %}
+{% if about %}
+<section {% section_attrs section_row section_id="about" base_classes="about band-cream" bg_override=about.section_bg_color|default:'' text_override=about.section_text_color|default:'' %}>
+  <div class="wrap about-grid">
+    <figure class="about-frame">
+      {% if about.image %}
+      <img src="{{ about.image.url }}" alt="{{ about.image_alt|default:about.heading }}">
+      {% endif %}
+      <figcaption class="about-badge">
+        <strong>{{ about.badge_value }}</strong>
+        <span>{{ about.badge_label }}</span>
+      </figcaption>
+    </figure>
+    <div class="about-copy">
+      <p class="eyebrow">{{ about.eyebrow }}</p>
+      <h2 class="section-title">{{ about.heading }}</h2>
+      <p class="about-text">{{ about.paragraph_one }}</p>
+      {% if about.paragraph_two %}<p class="about-text">{{ about.paragraph_two }}</p>{% endif %}
+      {% if features %}
+      <ul class="feature-row">
+        {% for feature in features %}
+        <li>
+          {% if feature.image %}
+          <span class="feature-icon feature-icon--photo"><img src="{{ feature.image.url }}" alt=""></span>
+          {% else %}
+          <span class="feature-icon">{% icon feature.icon 22 %}</span>
+          {% endif %}
+          <strong>{{ feature.title }}</strong>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% with bu=about.button_url|public_href %}
+      {% if about.button_label and bu %}
+      <p class="about-cta-wrap"><a class="btn btn-line" href="{{ bu }}">{{ about.button_label }}</a></p>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+</section>
+{% endif %}

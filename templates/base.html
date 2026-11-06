@@ -4,13 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{% if site %}{{ site.brand_name }}{% else %}Iron Me·Ka{% endif %} — Expert Care for Every Fabric{% endblock %}</title>
-  <meta name="description" content="Professional saree care, ironing, steaming and finishing — handled with care and precision.">
+  <title>{% block title %}{% if site %}{{ site.brand_name }} {{ site.page_title_suffix }}{% else %}Iron Me·Ka — Expert Care for Every Fabric{% endif %}{% endblock %}</title>
+  {% if site and site.meta_description %}<meta name="description" content="{{ site.meta_description }}">{% endif %}
   {% if site.logo %}<link rel="icon" href="{{ site.logo.url }}">{% endif %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Mulish:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% if theme_css %}<style>{{ theme_css|safe }}</style>{% endif %}
 </head>
 <body {% block body_attrs %}{% endblock %}>
   <a class="skip" href="#main">Skip to content</a>
