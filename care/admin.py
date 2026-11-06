@@ -42,7 +42,13 @@ class SingletonAdmin(admin.ModelAdmin):
 class SiteSettingAdmin(SingletonAdmin):
     fieldsets = (
         ("Brand", {"fields": ("brand_name", "tagline", "logo", "slide_seconds")}),
-        ("Contact", {"fields": ("phone", "email", "address", "hours")}),
+        (
+            "Contact",
+            {
+                "fields": ("phone", "email", "enquiry_inbox_email", "address", "hours"),
+                "description": "Contact form messages are emailed to Enquiry inbox if set, otherwise to Email.",
+            },
+        ),
         ("Social", {"fields": ("instagram_url", "facebook_url", "youtube_url", "whatsapp_url")}),
         ("Footer", {"fields": ("footer_blurb", "copyright_text")}),
     )

@@ -8,7 +8,14 @@ class SiteSetting(models.Model):
     tagline = models.CharField(max_length=160, blank=True)
     logo = models.ImageField(upload_to="brand/", blank=True)
     phone = models.CharField(max_length=40, blank=True)
-    email = models.EmailField(blank=True)
+    email = models.EmailField(
+        blank=True,
+        help_text="Shown on the site and used as the inbox for contact form messages (unless Enquiry inbox below is set).",
+    )
+    enquiry_inbox_email = models.EmailField(
+        blank=True,
+        help_text="Optional. If set, contact form submissions are emailed here instead of the main Email field.",
+    )
     address = models.CharField(max_length=200, blank=True)
     hours = models.CharField(max_length=120, blank=True)
     instagram_url = models.URLField(blank=True)
@@ -56,7 +63,11 @@ class HeroSlide(models.Model):
     subtitle = models.TextField()
     image = models.ImageField(upload_to="hero/")
     primary_label = models.CharField(max_length=40, default="Book a Service")
-    primary_url = models.CharField(max_length=200, default="#book")
+    primary_url = models.CharField(
+        max_length=200,
+        default="#contact",
+        help_text='Use #contact to scroll to the contact section, or a full URL.',
+    )
     secondary_label = models.CharField(max_length=40, default="View Services")
     secondary_url = models.CharField(max_length=200, default="#services")
     order = models.PositiveIntegerField(default=0)
@@ -226,7 +237,7 @@ class CallToAction(models.Model):
     heading = models.CharField(max_length=140)
     text = models.TextField(blank=True)
     button_label = models.CharField(max_length=40, default="Book a Service")
-    button_url = models.CharField(max_length=200, default="#book")
+    button_url = models.CharField(max_length=200, default="#contact")
     link_label = models.CharField(max_length=40, blank=True, default="Send a message")
     link_url = models.CharField(max_length=200, blank=True, default="#contact")
 

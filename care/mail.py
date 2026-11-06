@@ -135,6 +135,59 @@ def send_registration_otp_email(*, recipient, name, otp, site=None):
     message.send(fail_silently=False)
 
 
+def send_contact_enquiry_notification(*, message_obj, site=None):
+    """Notify the business when someone submits the public contact form."""
+    if not email_delivery_enabled():
+        logger.warning("Contact form saved (#%s) but email is not configured.", message_obj.pk)
+        return
+    to_email = ""
+    if site:
+        to_email = (site.enquiry_inbox_email or site.email or "").strip()
+    if not to_email:
+        to_email = getattr(settings, "CONTACT_ENQUIRY_EMAIL", "").strip()
+    if not to_email:
+        logger.warning("Contact form #%s saved but no enquiry inbox email configured.", message_obj.pk)
+        return
+
+    brand = site.brand_name if site and site.brand_name else "Vastra Care"
+    from_email, _reply_to = _smtp_from_email(site)
+    subject = f"{brand} — enquiry from {message_obj.name}"
+    text_body = (
+        f"Name: {message_obj.name}\n"
+        f"Email: {message_obj.email}\n"
+        f"Phone: {message_obj.phone or '—'}\n\n"
+        f"{message_obj.message}\n"
+    )
+    html_body = (
+        f"<p><strong>Name:</strong> {message_obj.name}<br>"
+        f"<strong>Email:</strong> {message_obj.email}<br>"
+        f"<strong>Phone:</strong> {message_obj.phone or '—'}</p>"
+        f"<p>{message_obj.message.replace(chr(10), '<br>')}</p>"
+    )
+    if get_brevo_api_key():
+        send_transactional_email(
+            sender_email=from_email,
+            sender_name=brand,
+            to_email=to_email,
+            to_name=to_email,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+        )
+        logger.info("Contact enquiry notification sent via Brevo to %s", to_email)
+        return
+    message = EmailMultiAlternatives(
+        subject=subject,
+        body=text_body,
+        from_email=from_email,
+        to=[to_email],
+        reply_to=[message_obj.email],
+    )
+    message.attach_alternative(html_body, "text/html")
+    message.send(fail_silently=False)
+    logger.info("Contact enquiry notification sent to %s", to_email)
+
+
 def send_test_email_message(*, recipient, site=None):
     """Send a plain test message using the same Brevo API / SMTP path as booking mail."""
     if not email_delivery_enabled():

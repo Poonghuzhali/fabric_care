@@ -957,12 +957,33 @@ ul, ol { padding: 0; list-style: none; }
 
 .cta-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 18px;
   margin-top: 26px;
 }
 
 .cta-whatsapp { padding-inline: 18px; }
+
+.cta-email-btn {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cta-email-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
 
 .cta-contact {
   background: var(--cream);
@@ -1040,7 +1061,8 @@ ul, ol { padding: 0; list-style: none; }
 
 .socials { display: flex; gap: 10px; margin-top: 16px; }
 
-.socials a {
+.socials a,
+.socials__email {
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -1049,6 +1071,13 @@ ul, ol { padding: 0; list-style: none; }
   display: grid;
   place-items: center;
   text-decoration: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.socials__email:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .footer h2 {
@@ -1076,6 +1105,21 @@ ul, ol { padding: 0; list-style: none; }
   padding: 8px 14px;
   cursor: pointer;
   font-weight: 600;
+}
+
+.footer-admin-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.footer-admin-hint a {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+}
+
+.footer-admin-hint a:hover {
+  color: var(--gold);
 }
 
 .copyright {

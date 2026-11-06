@@ -13,15 +13,15 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST, require_http_methods
 
 from .decorators import customer_login_required
-from .customer_addresses import (
-    address_payload,
-    addresses_for_user,
-    remember_customer_address,
-    set_default_address,
-)
+from .customer_addresses import remember_customer_address, set_default_address
 from .forms import BookingForm, ContactForm, CustomerAddressForm, CustomerLoginForm, CustomerRegistrationForm
 from .email_timeout import run_with_timeout
-from .mail import email_delivery_enabled, send_booking_confirmation, send_registration_otp_email
+from .mail import (
+    email_delivery_enabled,
+    send_booking_confirmation,
+    send_contact_enquiry_notification,
+    send_registration_otp_email,
+)
 from .registration_otp import (
     OTP_TTL_MINUTES,
     create_or_refresh_verification,
@@ -414,11 +414,6 @@ def home(request):
             }
         )
     context = {
-        "payments_enabled": payments_enabled(),
-        "razorpay_key_id": settings.RAZORPAY_KEY_ID if payments_enabled() else "",
-        "payments_test_mode": bool(
-            payments_enabled() and settings.RAZORPAY_KEY_ID.startswith("rzp_test_")
-        ),
         "site": site,
         "nav_links": NavLink.objects.filter(is_active=True),
         "footer_links": NavLink.objects.filter(is_active=True, show_in_footer=True),
@@ -459,14 +454,6 @@ def home(request):
         "slide_seconds": seconds,
         "google_maps_api_key": getattr(settings, "GOOGLE_MAPS_API_KEY", ""),
     }
-    if request.user.is_authenticated and not request.user.is_staff and hasattr(
-        request.user, "customer_profile"
-    ):
-        context["saved_addresses_payload"] = [
-            address_payload(item) for item in addresses_for_user(request.user)
-        ]
-    else:
-        context["saved_addresses_payload"] = []
     return render(request, "index.html", context)
 
 
@@ -697,12 +684,17 @@ def contact(request):
         return _form_response(request, None, False, "")
     form = ContactForm(data)
     if form.is_valid():
-        ContactMessage.objects.create(
+        msg = ContactMessage.objects.create(
             name=form.cleaned_data["name"],
             phone=form.cleaned_data["phone"],
             email=form.cleaned_data["email"],
             message=form.cleaned_data["message"],
         )
+        site = SiteSetting.objects.first()
+        try:
+            send_contact_enquiry_notification(message_obj=msg, site=site)
+        except Exception:
+            logger.exception("Contact enquiry email failed for message #%s", msg.pk)
         return _form_response(
             request,
             form,

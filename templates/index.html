@@ -1,22 +1,16 @@
 {% extends "base.html" %}
 {% load care_tags static %}
 
-{% block body_attrs %}data-customer-auth="{% if user.is_authenticated and not user.is_staff %}true{% else %}false{% endif %}" data-login-url="{% url 'login' %}" data-register-url="{% url 'register' %}" data-google-maps-key="{{ google_maps_api_key|default:'' }}" data-payments-enabled="{% if payments_enabled %}true{% else %}false{% endif %}" data-razorpay-key="{{ razorpay_key_id|default:'' }}"{% if site %} data-brand="{{ site.brand_name }}"{% endif %}{% endblock %}
-
-{% block extra_scripts %}
-<script src="{% static 'js/maps-link-parse.js' %}"></script>
-<script src="{% static 'js/book-pickup-map.js' %}"></script>
-<script src="{% static 'js/saved-addresses.js' %}"></script>
-{% endblock %}
+{% block body_attrs %}{% if site %}data-brand="{{ site.brand_name }}"{% endif %}{% endblock %}
 
 {% block content %}
 <header class="nav" id="top">
   <div class="wrap nav-bar">
-    <a class="brand" href="#home" aria-label="{% if site %}{{ site.brand_name }}{% else %}Iron Me·Ka{% endif %} home">
+    <a class="brand" href="#home" aria-label="{% if site %}{{ site.brand_name }}{% else %}Fabric Care{% endif %} home">
       {% if site.logo %}
       <img src="{{ site.logo.url }}" alt="">
       {% else %}
-      <span class="brand-fallback">IM</span>
+      <span class="brand-fallback">VC</span>
       {% endif %}
     </a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
@@ -30,26 +24,8 @@
     </nav>
     <div class="nav-actions">
       <div class="nav-actions__main">
-        {% if user.is_authenticated and not user.is_staff %}
-        <a class="btn btn-nav-login" href="{% url 'account' %}">My account</a>
-        {% elif user.is_authenticated and user.is_staff %}
-        <a class="btn btn-nav-login" href="{% url 'portal:dashboard' %}">Staff portal</a>
-        {% else %}
-        <a class="btn btn-nav-login" href="{% url 'login' %}">Login</a>
-        {% endif %}
-        <a class="btn btn-solid nav-book" href="/?open_book=1" data-open-modal="book">Book a Service</a>
+        <a class="btn btn-solid nav-book" href="#contact" data-book-to-contact>Book a Service</a>
       </div>
-      {% if user.is_authenticated and not user.is_staff %}
-      <form class="nav-logout" method="post" action="{% url 'customer_logout' %}">
-        {% csrf_token %}
-        <button class="btn-icon-logout" type="submit" aria-label="Log out" title="Log out">{% icon "logout" 20 %}</button>
-      </form>
-      {% elif user.is_authenticated and user.is_staff %}
-      <form class="nav-logout" method="post" action="{% url 'portal:logout' %}">
-        {% csrf_token %}
-        <button class="btn-icon-logout" type="submit" aria-label="Log out" title="Log out">{% icon "logout" 20 %}</button>
-      </form>
-      {% endif %}
     </div>
   </div>
 </header>
@@ -69,7 +45,7 @@
             <h1 class="hero-title">{{ slide.title|linebreaksbr }}</h1>
             <p class="hero-sub">{{ slide.subtitle }}</p>
             <div class="hero-actions">
-              <a class="btn btn-solid" href="{{ slide.primary_url }}" {% if slide.primary_url == "#book" %}data-open-modal="book"{% endif %}>{{ slide.primary_label }}</a>
+              <a class="btn btn-solid" href="{{ slide.primary_url }}" {% if slide.primary_url == "#book" or slide.primary_url == "#contact" %}data-book-to-contact{% endif %}>{{ slide.primary_label }}</a>
               <a class="btn btn-ghost" href="{{ slide.secondary_url }}">{{ slide.secondary_label }}</a>
             </div>
           </div>
@@ -159,7 +135,7 @@
               <span class="from-label">FROM</span>
               <span class="price">{{ service.price|inr }}</span>
             </div>
-            <button class="btn btn-line" type="button" data-open-modal="book" data-service="{{ service.id }}">Book Now</button>
+            <a class="btn btn-line" href="#contact" data-book-to-contact>Enquire</a>
           </div>
         </article>
         {% endfor %}
@@ -232,7 +208,7 @@
   </section>
 
   {% if cta %}
-  <section class="cta-wrap band-cream" id="contact" aria-label="Contact and book a service">
+  <section class="cta-wrap band-cream" id="contact" aria-label="Contact us">
     <div class="wrap">
       <div class="cta">
         <div class="cta-main">
@@ -240,12 +216,15 @@
           <h2>{{ cta.heading }}</h2>
           {% if cta.text %}<p>{{ cta.text }}</p>{% endif %}
           <div class="cta-actions">
-            <a class="btn btn-gold" href="{{ cta.button_url }}" {% if cta.button_url == "#book" %}data-open-modal="book"{% endif %}>{{ cta.button_label }}</a>
+            <a class="btn btn-gold" href="{{ cta.button_url }}" {% if cta.button_url == "#book" or cta.button_url == "#contact" %}data-book-to-contact{% endif %}>{{ cta.button_label }}</a>
             {% if cta.link_label %}
             <a class="btn btn-ghost cta-whatsapp" href="{{ cta.link_url }}" target="_blank" rel="noopener">
               {% icon "whatsapp" 18 %} {{ cta.link_label }}
             </a>
             {% endif %}
+            <button type="button" class="btn btn-ghost cta-email-btn" data-open-modal="contact">
+              {% icon "mail" 18 %} Email us
+            </button>
           </div>
         </div>
         <div class="cta-contact">
@@ -264,6 +243,15 @@
             <div>
               <span class="contact-label">WHATSAPP</span>
               <a href="{{ site.whatsapp_url }}" target="_blank" rel="noopener"><strong>{{ site.phone }}</strong></a>
+            </div>
+          </div>
+          {% endif %}
+          {% if site.email %}
+          <div class="cta-contact-item">
+            <span class="cta-contact-icon">{% icon "mail" 18 %}</span>
+            <div>
+              <span class="contact-label">EMAIL</span>
+              <a href="mailto:{{ site.email }}"><strong>{{ site.email }}</strong></a>
             </div>
           </div>
           {% endif %}
@@ -316,6 +304,9 @@
         {% if site.whatsapp_url %}
         <a href="{{ site.whatsapp_url }}" aria-label="WhatsApp" target="_blank" rel="noopener">{% icon "whatsapp" 16 %}</a>
         {% endif %}
+        {% if site.email %}
+        <button type="button" class="socials__email" data-open-modal="contact" aria-label="Email us">{% icon "mail" 16 %}</button>
+        {% endif %}
       </div>
     </div>
     <div>
@@ -342,124 +333,20 @@
         {% if site.address %}<li>{{ site.address }}</li>{% endif %}
         {% if site.hours %}<li>{{ site.hours }}</li>{% endif %}
       </ul>
-      <button class="footer-write" type="button" data-open-modal="contact">Write to us</button>
+      <button class="footer-write" type="button" data-open-modal="contact">Email enquiry</button>
+      <p class="footer-admin-hint"><a href="/admin/">Site admin</a></p>
     </div>
   </div>
-  <p class="copyright">{% if site.copyright_text %}{{ site.copyright_text }}{% else %}© 2026 Iron Me·Ka. All rights reserved.{% endif %}</p>
+  <p class="copyright">{% if site.copyright_text %}{{ site.copyright_text }}{% else %}© 2026 Vastra Care. All rights reserved.{% endif %}</p>
 </footer>
 
 {{ services_payload|json_script:"services-data" }}
-{{ saved_addresses_payload|json_script:"saved-addresses-data" }}
-
-<div class="modal" id="book-modal" hidden>
-  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="book-title">
-    <button class="modal-close" type="button" data-close-modal aria-label="Close">&times;</button>
-    <p class="eyebrow">Book a service</p>
-    <h2 id="book-title">Tell us what needs care</h2>
-    {% if not user.is_authenticated or user.is_staff %}
-    <p class="book-auth-note">Please <a href="{% url 'login' %}?next=/%3Fopen_book%3D1">sign in</a> or <a href="{% url 'register' %}?next=/%3Fopen_book%3D1">register</a> before booking.</p>
-    {% endif %}
-    <form id="book-form" method="post" action="{% url 'book' %}" data-payment-order-url="{% url 'book_payment_order' %}" novalidate>
-      {% csrf_token %}
-      <p class="form-banner error" data-form-error hidden role="alert"></p>
-      <div class="field">
-        <label for="book-name">Full name</label>
-        <input id="book-name" name="name" type="text" autocomplete="name" required{% if user.is_authenticated and user.customer_profile %} value="{{ user.customer_profile.full_name }}" readonly{% endif %}>
-        <small class="error" data-error-for="name"></small>
-      </div>
-      <div class="form-grid">
-        <div class="field">
-          <label for="book-phone">Phone</label>
-          <input id="book-phone" name="phone" type="tel" autocomplete="tel" required{% if user.is_authenticated and user.customer_profile %} value="{{ user.customer_profile.phone }}" readonly{% endif %}>
-          <small class="error" data-error-for="phone"></small>
-        </div>
-        <div class="field">
-          <label for="book-email">Email</label>
-          <input id="book-email" name="email" type="email" autocomplete="email" required{% if user.is_authenticated and not user.is_staff %} value="{{ user.email }}" readonly{% endif %}>
-          <small class="error" data-error-for="email"></small>
-        </div>
-      </div>
-      <div id="book-pay-summary" class="book-pay-summary" hidden>
-        <span class="book-pay-summary__label">Service fee (pay now)</span>
-        <strong id="book-pay-amount" class="book-pay-summary__amount">—</strong>
-      </div>
-      <div class="form-grid">
-        <div class="field">
-          <label for="book-service">Service</label>
-          <select id="book-service" name="service" required>
-            <option value="">Choose a service</option>
-            {% for service in services %}
-            <option value="{{ service.id }}">{{ service.name }}</option>
-            {% endfor %}
-          </select>
-          <small class="error" data-error-for="service"></small>
-        </div>
-        <div class="field">
-          <label for="book-date">Preferred date</label>
-          <input id="book-date" name="preferred_date" type="date" required>
-          <small class="error" data-error-for="preferred_date"></small>
-        </div>
-      </div>
-      <div class="field" id="book-saved-address-field"{% if not user.is_authenticated or user.is_staff %} hidden{% endif %}>
-        <label for="book-saved-address">Saved pickup address</label>
-        <select id="book-saved-address" name="saved_address_id">
-          <option value="">Use a new address</option>
-          {% for addr in saved_addresses_payload %}
-          <option value="{{ addr.id }}">{{ addr.label }}{% if addr.is_default %} (default){% endif %}</option>
-          {% endfor %}
-        </select>
-        <small class="field-hint">Choose a saved address or enter a new one below. New addresses are saved after you place an order.</small>
-        <small class="error" data-error-for="saved_address_id"></small>
-      </div>
-      <div class="field">
-        <label for="book-address">Pickup address</label>
-        <input id="book-address" name="pickup_address" type="text" maxlength="400" required autocomplete="street-address" placeholder="Start typing your address — map updates when you pick a suggestion">
-        <small class="field-hint">Choose a Google suggestion or finish typing, then check the pin matches your doorstep.</small>
-        <small class="error" data-error-for="pickup_address"></small>
-      </div>
-      <div class="field pickup-map-field">
-        <div class="pickup-map-head">
-          <label>Pickup location on map</label>
-          <div class="pickup-map-toolbar">
-            <button type="button" id="book-locate-btn" class="pickup-map-btn">Use my location</button>
-            <button type="button" id="book-gmaps-pick-btn" class="pickup-map-btn pickup-map-btn--accent">Choose in Google Maps</button>
-          </div>
-        </div>
-        <p id="book-locate-status" class="pickup-locate-status" role="status" hidden></p>
-        <div id="book-pickup-map" class="pickup-map" role="application" aria-label="Choose pickup location on map"></div>
-        <input type="hidden" id="book-lat" name="pickup_latitude" value="">
-        <input type="hidden" id="book-lng" name="pickup_longitude" value="">
-        <input type="hidden" id="book-maps-url" name="pickup_maps_url" value="">
-        <small class="error" data-error-for="pickup_latitude"></small>
-        <label class="pickup-paste-label" for="book-maps-paste">Paste Google Maps link</label>
-        <input type="url" id="book-maps-paste" class="pickup-maps-paste" inputmode="url" autocomplete="off" placeholder="After you pick a spot in Google Maps, copy the link and paste it here">
-        <small class="field-hint">We detect your location when you open this form. You can also tap the map, drag the pin, or choose a place in Google Maps and paste the link back.</small>
-        <a id="book-maps-open" class="pickup-maps-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Preview pin in Google Maps</a>
-      </div>
-      <div class="field">
-        <label for="book-notes">Notes</label>
-        <textarea id="book-notes" name="notes" rows="3" maxlength="800" placeholder="Fabric, colour, and anything we should know"></textarea>
-        <small class="error" data-error-for="notes"></small>
-      </div>
-      <button class="btn btn-solid btn-block" id="book-submit" type="submit">Pay &amp; request booking</button>
-      <p class="field-hint book-pay-hint">You will pay the selected service price securely before your request is submitted.</p>
-      {% if payments_test_mode %}
-      <p class="book-pay-test-hint">Razorpay test card: <strong>4100 2800 0000 1007</strong> (Visa) or <strong>5267 3181 8797 5449</strong> (Mastercard). Any CVV, future expiry. On the next screen enter OTP <strong>1234</strong> or tap Success.</p>
-      {% endif %}
-    </form>
-    <div class="modal-success" hidden>
-      <h2>Order placed</h2>
-      <p data-success-text>Payment received. Opening your confirmation page…</p>
-      <button class="btn btn-solid" type="button" data-close-modal>Close</button>
-    </div>
-  </div>
-</div>
 
 <div class="modal" id="contact-modal" hidden>
   <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="contact-title">
     <button class="modal-close" type="button" data-close-modal aria-label="Close">&times;</button>
     <p class="eyebrow">Contact</p>
-    <h2 id="contact-title">Write to the studio</h2>
+    <h2 id="contact-title">Send us an email</h2>
     <form id="contact-form" method="post" action="{% url 'contact' %}" novalidate>
       {% csrf_token %}
       <p class="form-banner error" data-form-error hidden role="alert"></p>
@@ -475,17 +362,17 @@
           <small class="error" data-error-for="phone"></small>
         </div>
         <div class="field">
-          <label for="contact-email">Email</label>
+          <label for="contact-email">Your email</label>
           <input id="contact-email" name="email" type="email" autocomplete="email" required>
           <small class="error" data-error-for="email"></small>
         </div>
       </div>
       <div class="field">
         <label for="contact-message">Message</label>
-        <textarea id="contact-message" name="message" rows="4" maxlength="1200" required minlength="8"></textarea>
+        <textarea id="contact-message" name="message" rows="4" maxlength="1200" required minlength="8" placeholder="Tell us what you need"></textarea>
         <small class="error" data-error-for="message"></small>
       </div>
-      <button class="btn btn-solid btn-block" type="submit">Send message</button>
+      <button class="btn btn-solid btn-block" type="submit">Send email</button>
     </form>
     <div class="modal-success" hidden>
       <h2>Message sent</h2>
@@ -503,7 +390,7 @@
     <h2 id="detail-title"></h2>
     <p class="detail-meta" id="detail-meta"></p>
     <p class="detail-copy" id="detail-copy"></p>
-    <button class="btn btn-solid" type="button" id="detail-book">Book this service</button>
+    <button class="btn btn-solid" type="button" id="detail-enquire">Enquire via contact</button>
   </div>
 </div>
 {% endblock %}

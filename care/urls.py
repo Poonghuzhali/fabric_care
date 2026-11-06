@@ -1,20 +1,40 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
-    path("login/", views.customer_login, name="login"),
-    path("register/", views.customer_register, name="register"),
-    path("account/", views.customer_account, name="account"),
-    path("account/orders/<int:booking_id>/", views.customer_order_detail, name="order_detail"),
-    path("account/orders/<int:booking_id>/cancel/", views.customer_order_cancel, name="order_cancel"),
-    path("account/addresses/add/", views.customer_address_add, name="address_add"),
-    path("account/addresses/<int:address_id>/delete/", views.customer_address_delete, name="address_delete"),
-    path("account/addresses/<int:address_id>/default/", views.customer_address_default, name="address_default"),
-    path("logout/", views.customer_logout, name="customer_logout"),
-    path("book/payment-order/", views.book_payment_order, name="book_payment_order"),
-    path("book/confirmation/<int:booking_id>/", views.booking_confirmation, name="booking_confirmation"),
-    path("book/", views.book, name="book"),
     path("contact/", views.contact, name="contact"),
+    # Legacy URLs — landing site no longer has customer accounts or online booking
+    path("login/", RedirectView.as_view(pattern_name="home", permanent=False), name="login"),
+    path("register/", RedirectView.as_view(pattern_name="home", permanent=False), name="register"),
+    path("account/", RedirectView.as_view(pattern_name="home", permanent=False), name="account"),
+    path("logout/", RedirectView.as_view(pattern_name="home", permanent=False), name="customer_logout"),
+    path("book/", RedirectView.as_view(pattern_name="home", permanent=False)),
+    path("book/payment-order/", RedirectView.as_view(pattern_name="home", permanent=False)),
+    path(
+        "book/confirmation/<int:booking_id>/",
+        RedirectView.as_view(pattern_name="home", permanent=False),
+    ),
+    path(
+        "account/orders/<int:booking_id>/",
+        RedirectView.as_view(pattern_name="home", permanent=False),
+    ),
+    path(
+        "account/orders/<int:booking_id>/cancel/",
+        RedirectView.as_view(pattern_name="home", permanent=False),
+    ),
+    path(
+        "account/addresses/add/",
+        RedirectView.as_view(pattern_name="home", permanent=False),
+    ),
+    path(
+        "account/addresses/<int:address_id>/delete/",
+        RedirectView.as_view(pattern_name="home", permanent=False),
+    ),
+    path(
+        "account/addresses/<int:address_id>/default/",
+        RedirectView.as_view(pattern_name="home", permanent=False),
+    ),
 ]

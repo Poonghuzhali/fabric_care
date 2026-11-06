@@ -265,6 +265,7 @@ class Command(BaseCommand):
             logo=_file(_logo_path(), "brand/logo.png"),
             phone="+91 9790263322",
             email="hello@vastracare.in",
+            enquiry_inbox_email="poonghuzhali1990@gmail.com",
             address="6 Vincent de Paul street, COLAS NAGAR, PONDICHERRY - 605001",
             hours="Mon–Sat 9:00 AM – 8:00 PM · Sun 10:00 AM – 2:00 PM",
             instagram_url="https://instagram.com/",
@@ -303,7 +304,7 @@ class Command(BaseCommand):
                 subtitle=HERO_SUBTITLE,
                 image=image,
                 primary_label="Book a Service",
-                primary_url="#book",
+                primary_url="#contact",
                 secondary_label="View Services",
                 secondary_url="#services",
                 order=order,
@@ -424,7 +425,7 @@ class Command(BaseCommand):
                 "we make every piece look its best."
             ),
             button_label="Book a Service",
-            button_url="#book",
+            button_url="#contact",
             link_label="WhatsApp Us",
             link_url="https://wa.me/919790263322",
         )

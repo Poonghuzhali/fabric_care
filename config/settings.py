@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -136,6 +137,11 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+# Tests run without collectstatic; avoid manifest lookup errors.
+if "test" in sys.argv:
+    STORAGES["staticfiles"]["BACKEND"] = (
+        "django.contrib.staticfiles.storage.StaticFilesStorage"
+    )
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -144,6 +150,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Email — use console in dev; set SMTP env vars in production.
 SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
+CONTACT_ENQUIRY_EMAIL = os.environ.get(
+    "CONTACT_ENQUIRY_EMAIL", "poonghuzhali1990@gmail.com"
+).strip()
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "").strip()
 
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "").strip()
