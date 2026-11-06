@@ -267,6 +267,20 @@ ul, ol { padding: 0; list-style: none; }
   margin-right: -8px;
 }
 
+.nav-admin-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 12px;
+  white-space: nowrap;
+}
+
+.nav-admin-link:hover {
+  color: var(--maroon);
+  text-decoration: underline;
+}
+
 .nav-actions__main {
   display: flex;
   align-items: center;
@@ -2309,6 +2323,10 @@ ul, ol { padding: 0; list-style: none; }
     width: 100%;
     margin-top: 0;
     margin-right: 0;
+  }
+
+  .nav-bar .nav-admin-link {
+    margin-right: auto;
   }
 
   .nav-bar .nav-actions .nav-actions__main {

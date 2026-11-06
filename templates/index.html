@@ -23,6 +23,7 @@
       {% endfor %}
     </nav>
     <div class="nav-actions">
+      <a class="nav-admin-link" href="/admin/">Admin</a>
       <div class="nav-actions__main">
         <a class="btn btn-solid nav-book" href="#contact" data-book-to-contact>Book a Service</a>
       </div>
@@ -334,7 +335,7 @@
         {% if site.hours %}<li>{{ site.hours }}</li>{% endif %}
       </ul>
       <button class="footer-write" type="button" data-open-modal="contact">Email enquiry</button>
-      <p class="footer-admin-hint"><a href="/admin/">Site admin</a></p>
+      <p class="footer-admin-hint"><a href="/admin/">Django admin</a> — edit site content</p>
     </div>
   </div>
   <p class="copyright">{% if site.copyright_text %}{{ site.copyright_text }}{% else %}© 2026 Vastra Care. All rights reserved.{% endif %}</p>
